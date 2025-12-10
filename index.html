@@ -20,6 +20,14 @@
     <section id="filtros">
       <h2>Filtros (opcional)</h2>
 
+      <!-- Filtro de Equipe -->
+      <label>
+        Equipe:
+        <select id="filtro-equipe">
+          <option value="">Todas as equipes</option>
+        </select>
+      </label>
+
       <!-- Busca de Atleta -->
       <label>
         Atleta:
@@ -30,16 +38,15 @@
         <small id="atleta-selecionado" style="display:block; margin-top:8px; color:#0b3d91; font-weight:bold;"></small>
       </label>
 
-      <!-- Filtro de Equipe -->
-      <label>
-        Equipe:
-        <select id="filtro-equipe">
-          <option value="">Todas as equipes</option>
-        </select>
-      </label>
 
+    <div class="botoes-container">
       <button id="btn-carregar">Buscar</button>
-    </section>
+      <button id="btn-limpar" style="background: #666;">Limpar</button>
+	</div>
+  </div>
+	
+	
+	</section>
 
     <section id="resultado">
       <h2>Resultado</h2>

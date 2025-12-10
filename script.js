@@ -15,15 +15,17 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ====================================
-// ELEMENTOS
+// ELEMENTOS DOM
 // ====================================
-const inputAtleta = document.getElementById("filtro-atleta-input");
-const listaAtleta = document.getElementById("filtro-atleta-lista");
+const inputAtleta            = document.getElementById("filtro-atleta-input");
+const listaAtleta            = document.getElementById("filtro-atleta-lista");
 const labelAtletaSelecionado = document.getElementById("atleta-selecionado");
-const selEquipe = document.getElementById("filtro-equipe");
-const btnCarregar = document.getElementById("btn-carregar");
-const listaAtletasDiv = document.getElementById("lista-atletas");
+const selEquipe              = document.getElementById("filtro-equipe");
+const btnCarregar            = document.getElementById("btn-carregar");
+const btnLimpar              = document.getElementById("btn-limpar");
+const listaAtletasDiv        = document.getElementById("lista-atletas");
 
+// Variáveis de estado
 let atletaSelecionado = "";
 let equipeSelecionada = "";
 let todosAtletas = [];
@@ -39,7 +41,7 @@ if ("serviceWorker" in navigator) {
 }
 
 // ====================================
-// CARREGAR ATLETAS E EQUIPES (uma única vez)
+// CARREGAR DADOS INICIAIS
 // ====================================
 function carregarDadosIniciais() {
   listaAtletasDiv.innerHTML = "<p>Carregando dados...</p>";
@@ -61,11 +63,11 @@ function carregarDadosIniciais() {
       });
     });
 
-    // Preenche atletas
+    // Preenche lista de atletas
     todosAtletas = Array.from(atletasSet).sort((a, b) => a.localeCompare(b));
     inputAtleta.placeholder = `Buscar entre ${todosAtletas.length} atletas`;
 
-    // Preenche equipes
+    // Preenche select de equipes
     const equipesOrdenadas = Array.from(todasEquipes).sort((a, b) => a.localeCompare(b));
     selEquipe.innerHTML = '<option value="">Todas as equipes</option>';
     equipesOrdenadas.forEach(eq => {
@@ -92,14 +94,15 @@ function abrirLista(lista) {
 }
 
 function filtrarLista(termo) {
-  const filtrados = todosAtletas.filter(n => n.toLowerCase().includes(termo.toLowerCase().trim()));
-  exibirLista(filtrados.length > 0 ? filtrados : []);
+  const termoLower = termo.toLowerCase().trim();
+  const filtrados = todosAtletas.filter(n => n.toLowerCase().includes(termoLower));
+  exibirLista(filtrados);
 }
 
 function exibirLista(lista) {
   listaAtleta.innerHTML = "";
   if (lista.length === 0) {
-    listaAtleta.innerHTML = '<div class="combobox-item" style="color:#999; font-style:italic;">Nenhum atleta encontrado</div>';
+    listaAtleta.innerHTML = '<div class="combobox-item" style="color:#999; font-style:italic; padding:10px;">Nenhum atleta encontrado</div>';
     return;
   }
   lista.forEach(nome => {
@@ -119,15 +122,12 @@ function selecionarAtleta(nome) {
 }
 
 // ====================================
-// FILTRO DE EQUIPE
+// FILTROS E BOTÕES
 // ====================================
 selEquipe.addEventListener("change", () => {
   equipeSelecionada = selEquipe.value;
 });
 
-// ====================================
-// BOTÃO BUSCAR
-// ====================================
 btnCarregar.addEventListener("click", () => {
   if (!atletaSelecionado && !equipeSelecionada) {
     alert("Selecione um atleta ou uma equipe para buscar.");
@@ -145,8 +145,24 @@ btnCarregar.addEventListener("click", () => {
   }
 });
 
+// BOTÃO LIMPAR
+btnLimpar.addEventListener("click", () => {
+  // Limpa atleta
+  atletaSelecionado = "";
+  inputAtleta.value = "";
+  labelAtletaSelecionado.textContent = "";
+  listaAtleta.classList.remove("show");
+
+  // Limpa equipe
+  equipeSelecionada = "";
+  selEquipe.value = "";
+
+  // Restaura mensagem inicial
+  listaAtletasDiv.innerHTML = "<p>Use os filtros acima e clique em Buscar.</p>";
+});
+
 // ====================================
-// FUNÇÕES DE BUSCA
+// FUNÇÕES DE BUSCA E RENDERIZAÇÃO
 // ====================================
 function buscarHistoricoAtleta(nome) {
   db.ref("atletas").once("value", snapshot => {
@@ -204,7 +220,6 @@ function buscarHistoricoEquipe(equipeNome) {
 }
 
 function buscarAtletaNaEquipe(atletaNome, equipeNome) {
-  // Similar ao histórico completo, mas só onde equipe === equipeNome
   db.ref("atletas").once("value", snapshot => {
     const data = snapshot.val() || {};
     const anos = Object.keys(data).sort((a, b) => b - a);
@@ -230,7 +245,7 @@ function buscarAtletaNaEquipe(atletaNome, equipeNome) {
       });
     });
 
-    renderizarHistorico(atletaNome, historico, `Histórico de ${atletaNome} na equipe ${equipeNome}`);
+    renderizarHistorico(atletaNome, historico, `${atletaNome} na equipe ${equipeNome}`);
   });
 }
 
@@ -284,6 +299,6 @@ function renderizarHistoricoEquipe(equipe, historico) {
 }
 
 // ====================================
-// INICIAR
+// INICIAR APLICAÇÃO
 // ====================================
 document.addEventListener("DOMContentLoaded", carregarDadosIniciais);

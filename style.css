@@ -31,6 +31,7 @@ section {
   background: #fff;
   padding: 16px;
   border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 label {
@@ -39,96 +40,87 @@ label {
 }
 
 select, input[type="text"], button {
-  padding: 8px;
-  margin-top: 4px;
+  padding: 10px;
+  margin-top: 6px;
   width: 100%;
   max-width: 280px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
 }
 
 button {
   background: #0b3d91;
   color: #fff;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
+  font-weight: bold;
 }
 
 button:hover {
   background: #0a3176;
 }
 
+/* Botões lado a lado */
+.botoes-container {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+#btn-limpar {
+  background: #666 !important;
+}
+
+#btn-limpar:hover {
+  background: #555 !important;
+}
+
 #lista-atletas {
   margin-top: 12px;
 }
 
+/* Cards e seções */
 .atleta-card {
-  border-bottom: 1px solid #ddd;
-  padding: 8px 0;
   display: flex;
   align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
 }
 
 .atleta-card:last-child {
   border-bottom: none;
 }
 
-.atleta-numero {
-  font-weight: bold;
-  margin-right: 12px;
-  min-width: 30px;
-}
-
-.ano-section {
-  margin-top: 16px;
-  border-top: 1px solid #ccc;
-  padding-top: 8px;
-}
-
-.ano-section h3 {
-  margin: 8px 0;
-  font-size: 18px;
-}
-
-footer {
-  text-align: center;
-  padding: 8px;
-  font-size: 12px;
-  color: #555;
-}
-
-.ano-section h4, .atletas-header h3, .atletas-header h4 {
-  margin: 12px 0 8px;
+.atleta-info strong {
+  font-size: 1.1em;
   color: #0b3d91;
-  font-size: 1.2em;
 }
 
 .ano-section {
   background: #f9f9f9;
-  padding: 12px;
+  padding: 14px;
   border-radius: 6px;
-  margin: 12px 0;
-  border-left: 4px solid #0b3d91;
+  margin: 16px 0;
+  border-left: 5px solid #0b3d91;
 }
 
-.atleta-card {
-  display: flex;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.atleta-numero {
-  font-weight: bold;
-  font-size: 1.1em;
-  min-width: 40px;
+.ano-section h4 {
+  margin: 0 0 12px 0;
   color: #0b3d91;
+  font-size: 1.2em;
 }
 
-.atleta-info strong {
-  font-size: 1.1em;
+footer {
+  text-align: center;
+  padding: 16px;
+  font-size: 12px;
+  color: #555;
+  margin-top: 30px;
 }
 
-/* Combobox personalizado com busca */
+/* Combobox personalizado */
 .combobox-container {
   position: relative;
   max-width: 280px;
@@ -139,7 +131,6 @@ footer {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 14px;
 }
 
 .combobox-lista {
@@ -155,7 +146,7 @@ footer {
   border-radius: 0 0 4px 4px;
   z-index: 100;
   display: none;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
 .combobox-lista.show {
@@ -163,7 +154,7 @@ footer {
 }
 
 .combobox-item {
-  padding: 10px;
+  padding: 12px;
   cursor: pointer;
   border-bottom: 1px solid #eee;
 }
