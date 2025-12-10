@@ -95,3 +95,89 @@ footer {
   font-size: 12px;
   color: #555;
 }
+
+.ano-section h4, .atletas-header h3, .atletas-header h4 {
+  margin: 12px 0 8px;
+  color: #0b3d91;
+  font-size: 1.2em;
+}
+
+.ano-section {
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 12px 0;
+  border-left: 4px solid #0b3d91;
+}
+
+.atleta-card {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.atleta-numero {
+  font-weight: bold;
+  font-size: 1.1em;
+  min-width: 40px;
+  color: #0b3d91;
+}
+
+.atleta-info strong {
+  font-size: 1.1em;
+}
+
+/* Combobox personalizado com busca */
+.combobox-container {
+  position: relative;
+  max-width: 280px;
+}
+
+#filtro-atleta-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.combobox-lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  z-index: 100;
+  display: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.combobox-lista.show {
+  display: block;
+}
+
+.combobox-item {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.combobox-item:hover,
+.combobox-item.selected {
+  background: #0b3d91;
+  color: white;
+}
+
+#atleta-selecionado {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.9em;
+  color: #0b3d91;
+  font-weight: bold;
+}

@@ -4,62 +4,58 @@
   <meta charset="UTF-8" />
   <title>FPFS Atletas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Manifest PWA -->
   <link rel="manifest" href="manifest.json" />
-
-  <!-- Ícones básicos (ajuste os arquivos conforme tiver) -->
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-
   <meta name="theme-color" content="#0b3d91" />
-
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
     <h1>FPFS Atletas</h1>
-    <p>Consulta de atletas por ano, categoria, equipe ou atleta</p>
+    <p>Consulta por ano, categoria, equipe ou atleta</p>
   </header>
 
   <main>
     <section id="filtros">
       <h2>Filtros</h2>
       <label>
-        Ano:
-        <select id="filtro-ano"></select>
+        Ano: <span style="color:red">*</span>
+        <select id="filtro-ano" required></select>
       </label>
       <label>
-        Categoria:
-        <select id="filtro-categoria"></select>
+        Categoria: <span style="color:red">*</span>
+        <select id="filtro-categoria" required></select>
       </label>
       <label>
-        Equipe:
-        <select id="filtro-equipe"></select>
+        Equipe: (opcional)
+        <select id="filtro-equipe">
+          <option value="">Todas as equipes</option>
+        </select>
       </label>
-      <label>
-        Atleta (nome):
-        <input type="text" id="filtro-atleta" placeholder="Digite o nome do atleta">
-      </label>
+		<label>
+		  Atleta: (opcional)
+		  <div class="combobox-container">
+			<input type="text" id="filtro-atleta-input" placeholder="Digite para buscar atleta..." autocomplete="off">
+			<div id="filtro-atleta-lista" class="combobox-lista"></div>
+		  </div>
+		  <small id="atleta-selecionado"></small>
+		</label>
       <button id="btn-carregar">Carregar dados</button>
     </section>
 
     <section id="resultado">
       <h2>Resultado</h2>
-      <div id="lista-atletas">
-        <!-- lista gerada via JS -->
-      </div>
+      <div id="lista-atletas"></div>
     </section>
   </main>
 
   <footer>
-    <small>Dados via Firebase / FPFS</small>
+    <small>Dados via Firebase / FPFS • Atualizado automaticamente</small>
   </footer>
 
-  <!-- Firebase App (inclua os scripts oficiais do CDN) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
   <script src="script.js"></script>
 </body>
 </html>
