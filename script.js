@@ -15,25 +15,19 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ====================================
-// ELEMENTOS DOM
+// ELEMENTOS
 // ====================================
-const inputEquipe = document.getElementById("filtro-equipe-input");
-const listaEquipe = document.getElementById("filtro-equipe-lista");
-const labelEquipeSel = document.getElementById("equipe-selecionada");
-
 const inputAtleta = document.getElementById("filtro-atleta-input");
 const listaAtleta = document.getElementById("filtro-atleta-lista");
-const labelAtletaSel = document.getElementById("atleta-selecionado");
-
+const labelAtletaSelecionado = document.getElementById("atleta-selecionado");
+const selEquipe = document.getElementById("filtro-equipe");
 const btnCarregar = document.getElementById("btn-carregar");
-const btnLimpar = document.getElementById("btn-limpar");
 const listaAtletasDiv = document.getElementById("lista-atletas");
 
-// Variáveis de estado
-let equipeSelecionada = "";
 let atletaSelecionado = "";
+let equipeSelecionada = "";
 let todosAtletas = [];
-let todasEquipes = [];
+let todasEquipes = new Set();
 
 // ====================================
 // SERVICE WORKER
@@ -45,294 +39,246 @@ if ("serviceWorker" in navigator) {
 }
 
 // ====================================
-// CARREGAR DADOS INICIAIS
+// CARREGAR ATLETAS E EQUIPES (uma única vez)
 // ====================================
 function carregarDadosIniciais() {
-  listaAtletasDiv.innerHTML = "<p>Carregando dados da FPFS...</p>";
+  listaAtletasDiv.innerHTML = "<p>Carregando dados...</p>";
 
   db.ref("atletas").once("value", snapshot => {
     const data = snapshot.val() || {};
     const atletasSet = new Set();
-    const equipesSet = new Set();
 
     Object.values(data).forEach(anoObj => {
       Object.values(anoObj).forEach(catObj => {
-        Object.keys(catObj).forEach(categoria => {
-          Object.values(catObj[categoria]).forEach(eq => {
-            if (eq.equipe && eq.equipe.trim()) {
-              equipesSet.add(eq.equipe.trim());
+        Object.values(catObj).forEach(eq => {
+          if (eq.equipe) todasEquipes.add(eq.equipe);
+          (eq.atletas || []).forEach(at => {
+            if (at.nome && at.nome.trim()) {
+              atletasSet.add(at.nome.trim());
             }
-            (eq.atletas || []).forEach(at => {
-              if (at.nome && at.nome.trim()) {
-                atletasSet.add(at.nome.trim());
-              }
-            });
           });
         });
       });
     });
 
-    // Popular listas
-    todasEquipes = Array.from(equipesSet).sort((a, b) => a.localeCompare(b));
+    // Preenche atletas
     todosAtletas = Array.from(atletasSet).sort((a, b) => a.localeCompare(b));
-
-    inputEquipe.placeholder = `Buscar entre ${todasEquipes.length} equipes`;
     inputAtleta.placeholder = `Buscar entre ${todosAtletas.length} atletas`;
 
-    listaAtletasDiv.innerHTML = "<p>Digite uma equipe ou atleta ou clique em <strong>Buscar</strong>.</p>";
+    // Preenche equipes
+    const equipesOrdenadas = Array.from(todasEquipes).sort((a, b) => a.localeCompare(b));
+    selEquipe.innerHTML = '<option value="">Todas as equipes</option>';
+    equipesOrdenadas.forEach(eq => {
+      selEquipe.appendChild(new Option(eq, eq));
+    });
+
+    listaAtletasDiv.innerHTML = "<p>Use os filtros acima e clique em Buscar.</p>";
   }).catch(err => {
-    console.error("Erro Firebase:", err);
-    listaAtletasDiv.innerHTML = "<p style='color:red;'>Erro ao carregar dados. Verifique sua conexão.</p>";
+    console.error(err);
+    listaAtletasDiv.innerHTML = "<p style='color:red;'>Erro ao conectar com o banco de dados.</p>";
   });
 }
 
 // ====================================
-// FUNÇÕES DE COMBOBOX (reutilizáveis)
+// COMBOBOX ATLETA
 // ====================================
-function configurarCombobox(input, lista, dados, callbackSelecao, label) {
-  input.addEventListener("focus", () => exibirListaCompleta(dados, lista));
-  input.addEventListener("input", () => filtrarEExibir(input.value, dados, lista));
-  input.addEventListener("blur", () => setTimeout(() => lista.classList.remove("show"), 200));
+inputAtleta.addEventListener("focus", () => abrirLista(todosAtletas));
+inputAtleta.addEventListener("input", () => filtrarLista(inputAtleta.value));
+inputAtleta.addEventListener("blur", () => setTimeout(() => listaAtleta.classList.remove("show"), 200));
 
-  function exibirListaCompleta(array, listaEl) {
-    exibirLista(array, listaEl);
-    listaEl.classList.add("show");
-  }
-
-  function filtrarEExibir(termo, array, listaEl) {
-    const filtrados = array.filter(item => 
-      item.toLowerCase().includes(termo.toLowerCase().trim())
-    );
-    exibirLista(filtrados, listaEl);
-    listaEl.classList.add("show");
-  }
-
-  function exibirLista(array, listaEl) {
-    listaEl.innerHTML = "";
-    if (array.length === 0) {
-      listaEl.innerHTML = '<div class="combobox-item" style="color:#999; font-style:italic;">Nenhum item encontrado</div>';
-      return;
-    }
-    array.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "combobox-item";
-      div.textContent = item;
-      div.onclick = () => {
-        callbackSelecao(item);
-        input.value = item;
-        label.textContent = `Selecionado: ${item}`;
-        listaEl.classList.remove("show");
-      };
-      listaEl.appendChild(div);
-    });
-  }
+function abrirLista(lista) {
+  exibirLista(lista);
+  listaAtleta.classList.add("show");
 }
 
-// Configurar combobox de equipe
-configurarCombobox(
-  inputEquipe,
-  listaEquipe,
-  todasEquipes,
-  (nome) => equipeSelecionada = nome,
-  labelEquipeSel
-);
+function filtrarLista(termo) {
+  const filtrados = todosAtletas.filter(n => n.toLowerCase().includes(termo.toLowerCase().trim()));
+  exibirLista(filtrados.length > 0 ? filtrados : []);
+}
 
-// Configurar combobox de atleta
-configurarCombobox(
-  inputAtleta,
-  listaAtleta,
-  todosAtletas,
-  (nome) => atletaSelecionado = nome,
-  labelAtletaSel
-);
+function exibirLista(lista) {
+  listaAtleta.innerHTML = "";
+  if (lista.length === 0) {
+    listaAtleta.innerHTML = '<div class="combobox-item" style="color:#999; font-style:italic;">Nenhum atleta encontrado</div>';
+    return;
+  }
+  lista.forEach(nome => {
+    const item = document.createElement("div");
+    item.className = "combobox-item";
+    item.textContent = nome;
+    item.onclick = () => selecionarAtleta(nome);
+    listaAtleta.appendChild(item);
+  });
+}
+
+function selecionarAtleta(nome) {
+  atletaSelecionado = nome;
+  inputAtleta.value = nome;
+  labelAtletaSelecionado.textContent = `Selecionado: ${nome}`;
+  listaAtleta.classList.remove("show");
+}
+
+// ====================================
+// FILTRO DE EQUIPE
+// ====================================
+selEquipe.addEventListener("change", () => {
+  equipeSelecionada = selEquipe.value;
+});
 
 // ====================================
 // BOTÃO BUSCAR
 // ====================================
 btnCarregar.addEventListener("click", () => {
   if (!atletaSelecionado && !equipeSelecionada) {
-    alert("Por favor, selecione uma equipe ou um atleta.");
+    alert("Selecione um atleta ou uma equipe para buscar.");
     return;
   }
 
-  listaAtletasDiv.innerHTML = "<p>Buscando...</p>";
+  listaAtletasDiv.innerHTML = "<p>Carregando...</p>";
 
   if (atletaSelecionado && equipeSelecionada) {
-    buscarAtletaEmEquipe(atletaSelecionado, equipeSelecionada);
+    buscarAtletaNaEquipe(atletaSelecionado, equipeSelecionada);
   } else if (atletaSelecionado) {
     buscarHistoricoAtleta(atletaSelecionado);
-  } else {
+  } else if (equipeSelecionada) {
     buscarHistoricoEquipe(equipeSelecionada);
   }
 });
 
 // ====================================
-// BOTÃO LIMPAR
-// ====================================
-btnLimpar.addEventListener("click", () => {
-  equipeSelecionada = "";
-  atletaSelecionado = "";
-  inputEquipe.value = "";
-  inputAtleta.value = "";
-  labelEquipeSel.textContent = "";
-  labelAtletaSel.textContent = "";
-  listaAtletasDiv.innerHTML = "<p>Use os filtros acima e clique em <strong>Buscar</strong>.</p>";
-});
-
-// ====================================
 // FUNÇÕES DE BUSCA
 // ====================================
-function formatarCategoria(cat) {
-  const mapa = {
-    "sub7": "SUB 7", "sub07": "SUB 7", "sub-7": "SUB 7",
-    "sub8": "SUB 8", "sub08": "SUB 8", "sub-8": "SUB 8",
-    "sub9": "SUB 9", "sub09": "SUB 9", "sub-9": "SUB 9"
-  };
-  const chave = cat.toLowerCase().replace(/[^a-z0-9]/g, '');
-  return mapa[chave] || cat.toUpperCase();
-}
-
-function buscarHistoricoAtleta(nomeAtleta) {
+function buscarHistoricoAtleta(nome) {
   db.ref("atletas").once("value", snapshot => {
     const data = snapshot.val() || {};
-    const resultados = [];
+    const anos = Object.keys(data).sort((a, b) => b - a);
+    const historico = {};
 
-    Object.keys(data).sort((a, b) => b - a).forEach(ano => {
+    anos.forEach(ano => {
       Object.values(data[ano] || {}).forEach(catObj => {
-        Object.keys(catObj).forEach(categoria => {
-          const catFormatada = formatarCategoria(categoria);
-          Object.values(catObj[categoria]).forEach(eq => {
+        Object.values(catObj).forEach(eq => {
+          (eq.atletas || []).forEach(at => {
+            if (at.nome && at.nome.trim().toLowerCase() === nome.toLowerCase()) {
+              if (!historico[ano]) historico[ano] = [];
+              historico[ano].push({
+                equipe: eq.equipe || "Desconhecida",
+                categoria: "Diversas",
+                posicao: at.posicao || "-",
+                nascimento: at.data_nascimento || "-"
+              });
+            }
+          });
+        });
+      });
+    });
+
+    renderizarHistorico(nome, historico, "Histórico Completo do Atleta");
+  });
+}
+
+function buscarHistoricoEquipe(equipeNome) {
+  db.ref("atletas").once("value", snapshot => {
+    const data = snapshot.val() || {};
+    const anos = Object.keys(data).sort((a, b) => b - a);
+    const historico = {};
+
+    anos.forEach(ano => {
+      Object.values(data[ano] || {}).forEach(catObj => {
+        Object.values(catObj).forEach(eq => {
+          if (eq.equipe === equipeNome) {
+            if (!historico[ano]) historico[ano] = [];
             (eq.atletas || []).forEach(at => {
-              if (at.nome && at.nome.trim().toLowerCase() === nomeAtleta.toLowerCase()) {
-                resultados.push({
-                  ano,
-                  equipe: eq.equipe || "Não informada",
-                  categoria: catFormatada
+              historico[ano].push({
+                nome: at.nome || "Sem nome",
+                posicao: at.posicao || "-",
+                nascimento: at.data_nascimento || "-"
+              });
+            });
+          }
+        });
+      });
+    });
+
+    renderizarHistoricoEquipe(equipeNome, historico);
+  });
+}
+
+function buscarAtletaNaEquipe(atletaNome, equipeNome) {
+  // Similar ao histórico completo, mas só onde equipe === equipeNome
+  db.ref("atletas").once("value", snapshot => {
+    const data = snapshot.val() || {};
+    const anos = Object.keys(data).sort((a, b) => b - a);
+    const historico = {};
+
+    anos.forEach(ano => {
+      Object.values(data[ano] || {}).forEach(catObj => {
+        Object.values(catObj).forEach(eq => {
+          if (eq.equipe === equipeNome) {
+            (eq.atletas || []).forEach(at => {
+              if (at.nome && at.nome.trim().toLowerCase() === atletaNome.toLowerCase()) {
+                if (!historico[ano]) historico[ano] = [];
+                historico[ano].push({
+                  equipe: eq.equipe,
+                  categoria: "Diversas",
+                  posicao: at.posicao || "-",
+                  nascimento: at.data_nascimento || "-"
                 });
               }
             });
-          });
+          }
         });
       });
     });
 
-    renderizarResultadoAtleta(nomeAtleta(nomeAtleta, resultados);
+    renderizarHistorico(atletaNome, historico, `Histórico de ${atletaNome} na equipe ${equipeNome}`);
   });
 }
 
-function buscarHistoricoEquipe(nomeEquipe) {
-  db.ref("atletas").once("value", snapshot => {
-    const data = snapshot.val() || {};
-    const resultados = [];
-
-    Object.keys(data).sort((a, b) => b - a).forEach(ano => {
-      Object.values(data[ano] || {}).forEach(catObj => {
-        Object.keys(catObj).forEach(categoria => {
-          const catFormatada = formatarCategoria(categoria);
-          Object.values(catObj[categoria]).forEach(eq => {
-            if (eq.equipe === nomeEquipe) {
-              (eq.atletas || []).forEach(at => {
-                if (at.nome && at.nome.trim()) {
-                  resultados.push({
-                    ano,
-                    nome: at.nome.trim(),
-                    categoria: catFormatada
-                  });
-                }
-              });
-            }
-          });
-        });
-      });
-    });
-
-    renderizarResultadoEquipe(nomeEquipe, resultados);
-  });
-}
-
-function buscarAtletaEmEquipe(nomeAtleta, nomeEquipe) {
-  // Mesmo que buscarHistoricoAtleta, mas só onde equipe === nomeEquipe
-  db.ref("atletas").once("value", snapshot => {
-    const data = snapshot.val() || {};
-    const resultados = [];
-
-    Object.keys(data).sort((a, b) => b - a).forEach(ano => {
-      Object.values(data[ano] || {}).forEach(catObj => {
-        Object.keys(catObj).forEach(categoria => {
-          const catFormatada = formatarCategoria(categoria);
-          Object.values(catObj[categoria]).forEach(eq => {
-            if (eq.equipe === nomeEquipe) {
-              (eq.atletas || []).forEach(at => {
-                if (at.nome && at.nome.trim().toLowerCase() === nomeAtleta.toLowerCase()) {
-                  resultados.push({ ano, categoria: catFormatada });
-                }
-              });
-            }
-          });
-        });
-      });
-    });
-
-    renderizarResultadoAtletaEmEquipe(nomeAtleta, nomeEquipe, resultados);
-  });
-}
-
-// ====================================
-// RENDERIZAÇÃO FINAL (apenas Nome + Categoria)
-// ====================================
-function renderizarResultadoAtleta(nome, resultados) {
-  if (resultados.length === 0) {
-    listaAtletasDiv.innerHTML = `<p>Nenhum registro encontrado para <strong>${nome}</strong>.</p>`;
+function renderizarHistorico(titulo, historico, cabecalho = titulo) {
+  if (Object.keys(historico).length === 0) {
+    listaAtletasDiv.innerHTML = `<p>Nenhum registro encontrado para <strong>${titulo}</strong>.</p>`;
     return;
   }
 
-  let html = `<div class="atletas-header"><h3>Histórico de ${nome}</h3></div>`;
-  resultados.forEach(r => {
-    html += `
-      <div class="atleta-card">
-        <div class="atleta-info">
-          <strong>${r.nome || nome}</strong><br>
-          <small>${r.ano} • ${r.categoria} • ${r.equipe}</small>
-        </div>
-      </div>`;
+  let html = `<div class="atletas-header"><h3>${cabecalho}</h3></div>`;
+  Object.keys(historico).sort((a, b) => b - a).forEach(ano => {
+    html += `<div class="ano-section"><h4>${ano}</h4>`;
+    historico[ano].forEach(reg => {
+      html += `
+        <div class="atleta-card">
+          <div class="atleta-info">
+            <strong>${reg.equipe || "Equipe não informada"}</strong><br>
+            <small>Categoria: ${reg.categoria} • Posição: ${reg.posicao}</small><br>
+            <small>Nascimento: ${reg.nascimento}</small>
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
   });
   listaAtletasDiv.innerHTML = html;
 }
 
-function renderizarResultadoEquipe(equipe, resultados) {
-  if (resultados.length === 0) {
-    listaAtletasDiv.innerHTML = `<p>Nenhum atleta encontrado para a equipe <strong>${equipe}</strong>.</p>`;
+function renderizarHistoricoEquipe(equipe, historico) {
+  if (Object.keys(historico).length === 0) {
+    listaAtletasDiv.innerHTML = `<p>Nenhum registro encontrado para a equipe <strong>${equipe}</strong>.</p>`;
     return;
   }
 
-  let html = `<div class="atletas-header"><h3>Atletas da equipe: ${equipe}</h3></div>`;
-  resultados.forEach(r => {
-    html += `
-      <div class="atleta-card">
-        <div class="atleta-info">
-          <strong>${r.nome}</strong><br>
-          <small>${r.ano} • ${r.categoria}</small>
-        </div>
-      </div>`;
-  });
-  listaAtletasDiv.innerHTML = html;
-}
-
-function renderizarResultadoAtletaEmEquipe(nomeAtleta, equipe, resultados) {
-  if (resultados.length === 0) {
-    listaAtletasDiv.innerHTML = `<p>${nomeAtleta} não encontrado na equipe <strong>${equipe}</strong>.</p>`;
-    return;
-  }
-
-  let html = `<div class="atletas-header"><h3>${nomeAtleta} na ${equipe}</h3></div>`;
-  resultados.forEach(r => {
-    html += `
-      <div class="atleta-card">
-        <div class="atleta-info">
-          <strong>${nomeAtleta}</strong><br>
-          <small>${r.ano} • ${r.categoria}</small>
-        </div>
-      </div>`;
+  let html = `<div class="atletas-header"><h3>Histórico da Equipe: ${equipe}</h3></div>`;
+  Object.keys(historico).sort((a, b) => b - a).forEach(ano => {
+    const atletasUnicos = [...new Set(historico[ano].map(a => a.nome))];
+    html += `<div class="ano-section"><h4>${ano} (${atletasUnicos.length} atletas)</h4>`;
+    atletasUnicos.forEach(nome => {
+      const reg = historico[ano].find(r => r.nome === nome);
+      html += `
+        <div class="atleta-card">
+          <div class="atleta-info">
+            <strong>${nome}</strong><br>
+            <small>Posição: ${reg.posicao} • Nascimento: ${reg.nascimento}</small>
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
   });
   listaAtletasDiv.innerHTML = html;
 }
