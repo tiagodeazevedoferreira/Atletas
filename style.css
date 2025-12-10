@@ -38,7 +38,7 @@ label {
   margin-bottom: 12px;
 }
 
-select, button {
+select, input[type="text"], button {
   padding: 8px;
   margin-top: 4px;
   width: 100%;
@@ -64,10 +64,29 @@ button:hover {
 .atleta-card {
   border-bottom: 1px solid #ddd;
   padding: 8px 0;
+  display: flex;
+  align-items: center;
 }
 
 .atleta-card:last-child {
   border-bottom: none;
+}
+
+.atleta-numero {
+  font-weight: bold;
+  margin-right: 12px;
+  min-width: 30px;
+}
+
+.ano-section {
+  margin-top: 16px;
+  border-top: 1px solid #ccc;
+  padding-top: 8px;
+}
+
+.ano-section h3 {
+  margin: 8px 0;
+  font-size: 18px;
 }
 
 footer {

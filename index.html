@@ -19,7 +19,7 @@
 <body>
   <header>
     <h1>FPFS Atletas</h1>
-    <p>Consulta de atletas por ano, categoria e equipe</p>
+    <p>Consulta de atletas por ano, categoria, equipe ou atleta</p>
   </header>
 
   <main>
@@ -37,11 +37,15 @@
         Equipe:
         <select id="filtro-equipe"></select>
       </label>
-      <button id="btn-carregar">Carregar atletas</button>
+      <label>
+        Atleta (nome):
+        <input type="text" id="filtro-atleta" placeholder="Digite o nome do atleta">
+      </label>
+      <button id="btn-carregar">Carregar dados</button>
     </section>
 
     <section id="resultado">
-      <h2>Atletas</h2>
+      <h2>Resultado</h2>
       <div id="lista-atletas">
         <!-- lista gerada via JS -->
       </div>
