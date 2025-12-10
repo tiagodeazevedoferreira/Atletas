@@ -13,30 +13,36 @@
 <body>
   <header>
     <h1>FPFS Atletas</h1>
-    <p>Busque o histórico completo de qualquer atleta</p>
+    <p>Busque por atleta ou equipe • Histórico completo</p>
   </header>
 
   <main>
     <section id="filtros">
-      <h2>Buscar Atleta</h2>
-      
-      <div class="combobox-container">
-        <input 
-          type="text" 
-          id="filtro-atleta-input" 
-          placeholder="Digite o nome do atleta..." 
-          autocomplete="off"
-        >
-        <div id="filtro-atleta-lista" class="combobox-lista"></div>
-      </div>
-      
-      <small id="atleta-selecionado" style="display:block; margin-top:8px; color:#0b3d91; font-weight:bold;"></small>
-      
-      <button id="btn-carregar">Buscar histórico completo</button>
+      <h2>Filtros (opcional)</h2>
+
+      <!-- Busca de Atleta -->
+      <label>
+        Atleta:
+        <div class="combobox-container">
+          <input type="text" id="filtro-atleta-input" placeholder="Digite o nome do atleta..." autocomplete="off">
+          <div id="filtro-atleta-lista" class="combobox-lista"></div>
+        </div>
+        <small id="atleta-selecionado" style="display:block; margin-top:8px; color:#0b3d91; font-weight:bold;"></small>
+      </label>
+
+      <!-- Filtro de Equipe -->
+      <label>
+        Equipe:
+        <select id="filtro-equipe">
+          <option value="">Todas as equipes</option>
+        </select>
+      </label>
+
+      <button id="btn-carregar">Buscar</button>
     </section>
 
     <section id="resultado">
-      <h2>Histórico do Atleta</h2>
+      <h2>Resultado</h2>
       <div id="lista-atletas"></div>
     </section>
   </main>
