@@ -1,136 +1,189 @@
 * {
   box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  margin: 0;
-  background: #f5f5f5;
+  background: #f8f9fc;
   color: #222;
+  line-height: 1.5;
 }
 
 header {
   background: #0b3d91;
-  color: #fff;
-  padding: 16px;
+  color: white;
   text-align: center;
+  padding: 20px 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+header h1 {
+  font-size: 1.8em;
+  margin-bottom: 6px;
+}
+
+header p {
+  font-size: 0.95em;
+  opacity: 0.9;
 }
 
 main {
-  padding: 16px;
   max-width: 900px;
   margin: 0 auto;
-}
-
-h1, h2 {
-  margin: 0 0 8px 0;
+  padding: 20px 16px;
 }
 
 section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
   margin-bottom: 24px;
-  background: #fff;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+h2 {
+  font-size: 1.3em;
+  color: #0b3d91;
+  margin-bottom: 16px;
+  font-weight: 600;
 }
 
 label {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  font-weight: 500;
 }
 
-select, input[type="text"], button {
-  padding: 10px;
-  margin-top: 6px;
+select,
+input[type="text"] {
   width: 100%;
-  max-width: 280px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 14px;
+  max-width: 300px;
+  padding: 12px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  font-size: 1em;
+  transition: border 0.2s;
 }
 
-button {
-  background: #0b3d91;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
+select:focus,
+input[type="text"]:focus {
+  outline: none;
+  border-color: #0b3d91;
+  box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.15);
 }
 
-button:hover {
-  background: #0a3176;
-}
-
-/* Botões lado a lado */
+/* Container dos botões */
 .botoes-container {
   display: flex;
   gap: 12px;
-  margin-top: 16px;
   flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+button {
+  padding: 12px 20px;
+  font-size: 1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 120px;
+}
+
+#btn-carregar {
+  background: #0b3d91;
+  color: white;
+}
+
+#btn-carregar:hover {
+  background: #094a8c;
+  transform: translateY(-1px);
 }
 
 #btn-limpar {
-  background: #666 !important;
+  background: #6c757d;
+  color: white;
 }
 
 #btn-limpar:hover {
-  background: #555 !important;
+  background: #5a6268;
+  transform: translateY(-1px);
 }
 
+/* Área de resultados */
 #lista-atletas {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
-/* Cards e seções */
+.atletas-header h3 {
+  font-size: 1.5em;
+  color: #0b3d91;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e3e8f0;
+}
+
+.ano-section {
+  background: #f8f9ff;
+  border-left: 5px solid #0b3d91;
+  border-radius: 0 8px 8px 0;
+  padding: 16px;
+  margin: 20px 0;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+}
+
+.ano-section h4 {
+  font-size: 1.25em;
+  color: #0b3d91;
+  margin: 0 0 14px 0;
+  font-weight: 600;
+}
+
 .atleta-card {
-  display: flex;
-  align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px dashed #ddd;
 }
 
 .atleta-card:last-child {
   border-bottom: none;
 }
 
+.atleta-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .atleta-info strong {
-  font-size: 1.1em;
-  color: #0b3d91;
+  font-size: 1.15em;
+  color: #1e293b;
 }
 
-.ano-section {
-  background: #f9f9f9;
-  padding: 14px;
-  border-radius: 6px;
-  margin: 16px 0;
-  border-left: 5px solid #0b3d91;
-}
-
-.ano-section h4 {
-  margin: 0 0 12px 0;
-  color: #0b3d91;
-  font-size: 1.2em;
-}
-
-footer {
-  text-align: center;
-  padding: 16px;
-  font-size: 12px;
-  color: #555;
-  margin-top: 30px;
+/* Tag de categoria (Sub-7, Sub-8, Sub-9...) */
+.categoria-tag {
+  background: #0b3d91;
+  color: white;
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Combobox personalizado */
 .combobox-container {
   position: relative;
-  max-width: 280px;
+  max-width: 300px;
 }
 
 #filtro-atleta-input {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
 }
 
 .combobox-lista {
@@ -138,15 +191,15 @@ footer {
   top: 100%;
   left: 0;
   right: 0;
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
   background: white;
-  border: 1px solid #ccc;
+  border: 1.5px solid #ccc;
   border-top: none;
-  border-radius: 0 0 4px 4px;
-  z-index: 100;
+  border-radius: 0 0 8px 8px;
+  z-index: 1000;
   display: none;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
 .combobox-lista.show {
@@ -154,21 +207,66 @@ footer {
 }
 
 .combobox-item {
-  padding: 12px;
+  padding: 14px 16px;
   cursor: pointer;
+  transition: background 0.2s;
   border-bottom: 1px solid #eee;
 }
 
-.combobox-item:hover,
-.combobox-item.selected {
+.combobox-item:hover {
   background: #0b3d91;
   color: white;
 }
 
+.combobox-item:last-child {
+  border-bottom: none;
+}
+
 #atleta-selecionado {
-  display: block;
-  margin-top: 6px;
-  font-size: 0.9em;
+  margin-top: 8px;
+  font-size: 0.95em;
   color: #0b3d91;
   font-weight: bold;
+  display: block;
+}
+
+/* Mensagens */
+#lista-atletas p {
+  text-align: center;
+  color: #666;
+  font-size: 1.1em;
+  padding: 30px 0;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 30px 16px;
+  color: #777;
+  font-size: 0.9em;
+  margin-top: 40px;
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+  .botoes-container {
+    flex-direction: column;
+  }
+  
+  button {
+    width: 100%;
+  }
+  
+  select, input[type="text"], .combobox-container {
+    max-width: 100%;
+  }
+  
+  .atleta-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .categoria-tag {
+    margin-top: 6px;
+  }
 }
