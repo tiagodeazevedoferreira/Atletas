@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<head>
   <meta charset="UTF-8" />
   <title>FPFS Atletas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,6 +21,16 @@
     <section id="filtros">
       <h2>Filtros (opcional)</h2>
 
+      <!-- Busca de Equipe (agora com combobox) -->
+      <label>
+        Equipe:
+        <div class="combobox-container">
+          <input type="text" id="filtro-equipe-input" placeholder="Digite o nome da equipe..." autocomplete="off">
+          <div id="filtro-equipe-lista" class="combobox-lista"></div>
+        </div>
+        <small id="equipe-selecionada" style="display:block; margin-top:8px; color:#0b3d91; font-weight:bold;"></small>
+      </label>
+
       <!-- Busca de Atleta -->
       <label>
         Atleta:
@@ -30,15 +41,10 @@
         <small id="atleta-selecionado" style="display:block; margin-top:8px; color:#0b3d91; font-weight:bold;"></small>
       </label>
 
-      <!-- Filtro de Equipe -->
-      <label>
-        Equipe:
-        <select id="filtro-equipe">
-          <option value="">Todas as equipes</option>
-        </select>
-      </label>
-
-      <button id="btn-carregar">Buscar</button>
+      <div class="botoes">
+        <button id="btn-carregar">Buscar</button>
+        <button id="btn-limpar" style="background:#666;">Limpar</button>
+      </div>
     </section>
 
     <section id="resultado">
