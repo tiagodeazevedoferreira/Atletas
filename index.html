@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>FPFS Atletas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Manifest PWA -->
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Ícones básicos (ajuste os arquivos conforme tiver) -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <meta name="theme-color" content="#0b3d91" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>FPFS Atletas</h1>
+    <p>Consulta de atletas por ano, categoria e equipe</p>
+  </header>
+
+  <main>
+    <section id="filtros">
+      <h2>Filtros</h2>
+      <label>
+        Ano:
+        <select id="filtro-ano"></select>
+      </label>
+      <label>
+        Categoria:
+        <select id="filtro-categoria"></select>
+      </label>
+      <label>
+        Equipe:
+        <select id="filtro-equipe"></select>
+      </label>
+      <button id="btn-carregar">Carregar atletas</button>
+    </section>
+
+    <section id="resultado">
+      <h2>Atletas</h2>
+      <div id="lista-atletas">
+        <!-- lista gerada via JS -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Dados via Firebase / FPFS</small>
+  </footer>
+
+  <!-- Firebase App (inclua os scripts oficiais do CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script src="script.js"></script>
+</body>
+</html>
