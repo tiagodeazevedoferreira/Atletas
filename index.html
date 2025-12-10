@@ -13,45 +13,36 @@
 <body>
   <header>
     <h1>FPFS Atletas</h1>
-    <p>Consulta por ano, categoria, equipe ou atleta</p>
+    <p>Busque o histórico completo de qualquer atleta</p>
   </header>
 
   <main>
     <section id="filtros">
-      <h2>Filtros</h2>
-      <label>
-        Ano: <span style="color:red">*</span>
-        <select id="filtro-ano" required></select>
-      </label>
-      <label>
-        Categoria: <span style="color:red">*</span>
-        <select id="filtro-categoria" required></select>
-      </label>
-      <label>
-        Equipe: (opcional)
-        <select id="filtro-equipe">
-          <option value="">Todas as equipes</option>
-        </select>
-      </label>
-		<label>
-		  Atleta: (opcional)
-		  <div class="combobox-container">
-			<input type="text" id="filtro-atleta-input" placeholder="Digite para buscar atleta..." autocomplete="off">
-			<div id="filtro-atleta-lista" class="combobox-lista"></div>
-		  </div>
-		  <small id="atleta-selecionado"></small>
-		</label>
-      <button id="btn-carregar">Carregar dados</button>
+      <h2>Buscar Atleta</h2>
+      
+      <div class="combobox-container">
+        <input 
+          type="text" 
+          id="filtro-atleta-input" 
+          placeholder="Digite o nome do atleta..." 
+          autocomplete="off"
+        >
+        <div id="filtro-atleta-lista" class="combobox-lista"></div>
+      </div>
+      
+      <small id="atleta-selecionado" style="display:block; margin-top:8px; color:#0b3d91; font-weight:bold;"></small>
+      
+      <button id="btn-carregar">Buscar histórico completo</button>
     </section>
 
     <section id="resultado">
-      <h2>Resultado</h2>
+      <h2>Histórico do Atleta</h2>
       <div id="lista-atletas"></div>
     </section>
   </main>
 
   <footer>
-    <small>Dados via Firebase / FPFS • Atualizado automaticamente</small>
+    <small>Dados atualizados automaticamente • FPFS 2025</small>
   </footer>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
