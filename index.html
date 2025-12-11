@@ -6,9 +6,9 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="manifest" href="Atletas/manifest.json" />
-  <link rel="icon" type="image/png" sizes="192x192" href="Atletas/icon-192.png" />
-  <link rel="apple-touch-icon" href="Atletas/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
 
   <meta name="theme-color" content="#0b3d91" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -27,13 +27,11 @@
     <section id="filtros">
       <h2>Filtros (opcional)</h2>
 
-      <!-- Filtro de Equipe -->
       <label for="filtro-equipe">Equipe</label>
       <select id="filtro-equipe">
         <option value="">Todas as equipes</option>
       </select>
 
-      <!-- Busca de Atleta -->
       <label for="filtro-atleta-input">Atleta</label>
       <div class="combobox-container">
         <input
@@ -64,11 +62,8 @@
     <small>Dados atualizados automaticamente - FPFS 2025</small>
   </footer>
 
-  <!-- Firebase compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
-  <!-- Lógica da aplicação -->
   <script src="script.js"></script>
 </body>
 </html>

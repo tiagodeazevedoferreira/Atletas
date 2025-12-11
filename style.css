@@ -164,7 +164,7 @@ button {
   color: #1e293b;
 }
 
-/* Tag de categoria (Sub-7, Sub-8, Sub-9...) */
+/* Tag de categoria */
 .categoria-tag {
   background: #0b3d91;
   color: white;
@@ -252,20 +252,22 @@ footer {
   .botoes-container {
     flex-direction: column;
   }
-  
+
   button {
     width: 100%;
   }
-  
-  select, input[type="text"], .combobox-container {
+
+  select,
+  input[type="text"],
+  .combobox-container {
     max-width: 100%;
   }
-  
+
   .atleta-info {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .categoria-tag {
     margin-top: 6px;
   }

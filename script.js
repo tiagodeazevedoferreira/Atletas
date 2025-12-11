@@ -108,7 +108,6 @@ function carregarDadosIniciais() {
       const atletasSet = new Set();
       todasEquipes = new Set();
 
-      // Ajuste este laço se a estrutura no Firebase for diferente
       Object.values(data).forEach(anoObj => {
         Object.values(anoObj).forEach(categoriasObj => {
           Object.values(categoriasObj).forEach(equipesObj => {
