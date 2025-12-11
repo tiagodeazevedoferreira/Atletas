@@ -43,10 +43,12 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// Botão flutuante "Instalar App"
+// ====================================
+// BOTÃO FLUTUANTE "INSTALAR APP" (PWA)
+// ====================================
 let deferredPrompt;
 const installButton = document.createElement("button");
-installButton.textContent = "Instalar App";
+installButton.textContent = "📱 Instalar App";
 installButton.style.cssText = `
   position: fixed;
   bottom: 20px;
@@ -58,34 +60,41 @@ installButton.style.cssText = `
   border-radius: 50px;
   font-weight: bold;
   font-size: 15px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   z-index: 99999;
   cursor: pointer;
   display: none;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  font-family: system-ui, sans-serif;
 `;
 document.body.appendChild(installButton);
 
-window.addEventListener("beforeinstallprompt", e => {
-  console.log("Evento beforeinstallprompt disparado!");
-  e.preventDefault();        // ← isso é correto
-  deferredPrompt = e;        // ← guarda o evento
+window.addEventListener("beforeinstallprompt", (e) => {
+  console.log("✅ PWA pode ser instalado!");
+  e.preventDefault();           // ← correto (impede o banner automático)
+  deferredPrompt = e;           // ← guarda o evento
   installButton.style.display = "block";  // ← mostra o botão flutuante
 });
 
-// Quando o usuário clicar no botão flutuante
 installButton.addEventListener("click", () => {
-  if (!deferredPrompt) return;
   installButton.style.display = "none";
-  deferredPrompt.prompt();  // ← aqui você chama .prompt() manualmente
-  deferredPrompt.userChoice.then(choice => {
+  if (!deferredPrompt) return;
+  
+  deferredPrompt.prompt();      // ← aqui chama a caixa oficial de instalação
+  deferredPrompt.userChoice.then((choice) => {
     if (choice.outcome === "accepted") {
-      console.log("Usuário instalou o app!");
+      console.log("🎉 App instalado com sucesso!");
     } else {
-      console.log("Usuário recusou a instalação");
+      console.log("Usuário cancelou a instalação");
     }
     deferredPrompt = null;
   });
+});
+
+// Esconde o botão depois de instalado
+window.addEventListener("appinstalled", () => {
+  installButton.style.display = "none";
+  console.log("🚀 PWA instalada permanentemente!");
 });
 
 window.addEventListener("appinstalled", () => {
