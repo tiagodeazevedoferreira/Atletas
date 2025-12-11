@@ -1,22 +1,24 @@
 {
-  "name": "Busca Atletas",
-  "short_name": "Busca Atletas",
-  "description": "Aplicação para buscar o histórico dos atletas da iniciação de futsal",
-  "start_url": "https://tiagodeazevedoferreira.github.io/Atletas/",
+  "name": "FPFS Atletas",
+  "short_name": "FPFS Atletas",
+  "description": "Histórico completo de atletas e equipes da FPFS",
+  "start_url": "/Atletas/",
   "scope": "/Atletas/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1e40af",
+  "background_color": "#0b3d91",
+  "theme_color": "#0b3d91",
   "icons": [
     {
-      "src": "./icon.png",
+      "src": "/Atletas/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "./icon.png",
+      "src": "/Atletas/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
