@@ -4,10 +4,13 @@
   <meta charset="UTF-8" />
   <title>FPFS Atletas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="manifest" href="/Atletas/manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/Atletas/icon-192.png" />
+  <link rel="apple-touch-icon" href="/Atletas/icon-192.png" />
   <meta name="theme-color" content="#0b3d91" />
+  <!-- Meta para forçar PWA em 2025 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -35,18 +38,14 @@
           <input type="text" id="filtro-atleta-input" placeholder="Digite o nome do atleta..." autocomplete="off">
           <div id="filtro-atleta-lista" class="combobox-lista"></div>
         </div>
-        <small id="atleta-selecionado" style="display:block; margin-top:8px; color:#0b3d91; font-weight:bold;"></small>
+        <small id="atleta-selecionado"></small>
       </label>
 
-
-    <div class="botoes-container">
-      <button id="btn-carregar">Buscar</button>
-      <button id="btn-limpar" style="background: #666;">Limpar</button>
-	</div>
-  </div>
-	
-	
-	</section>
+      <div class="botoes-container">
+        <button id="btn-carregar">Buscar</button>
+        <button id="btn-limpar">Limpar</button>
+      </div>
+    </section>
 
     <section id="resultado">
       <h2>Resultado</h2>

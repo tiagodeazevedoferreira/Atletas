@@ -1,5 +1,5 @@
 // ====================================
-// CONFIGURAÇÃO FIREBASE (seu projeto)
+// CONFIGURAÇÃO FIREBASE
 // ====================================
 const firebaseConfig = {
   apiKey: "AIzaSyCleLlq8sLVD0mrRjvMqLztZH7-Yqd9-eA",
@@ -36,7 +36,9 @@ let todasEquipes = new Set();
 // ====================================
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/Atletas/sw.js").catch(err => console.log("SW erro:", err));
+    navigator.serviceWorker.register("/Atletas/sw.js")
+      .then(reg => console.log("SW registrado com sucesso!", reg))
+      .catch(err => console.error("Erro no SW:", err));
   });
 }
 
@@ -64,12 +66,14 @@ installButton.style.cssText = `
 document.body.appendChild(installButton);
 
 window.addEventListener("beforeinstallprompt", (e) => {
+  console.log("Evento beforeinstallprompt disparado!"); // Debug
   e.preventDefault();
   deferredPrompt = e;
   installButton.style.display = "block";
 });
 
 installButton.addEventListener("click", () => {
+  console.log("Usuário clicou em Instalar"); // Debug
   installButton.style.display = "none";
   deferredPrompt.prompt();
   deferredPrompt.userChoice.then((choice) => {
@@ -92,6 +96,7 @@ function carregarDadosIniciais() {
   listaAtletasDiv.innerHTML = "<p>Carregando dados do banco...</p>";
 
   db.ref("atletas").once("value", snapshot => {
+    console.log("Dados Firebase carregados:", snapshot.val() ? "OK" : "Vazio"); // Debug
     const data = snapshot.val() || {};
     const atletasSet = new Set();
 
@@ -119,7 +124,7 @@ function carregarDadosIniciais() {
 
     listaAtletasDiv.innerHTML = "<p>Use os filtros acima e clique em <strong>Buscar</strong>.</p>";
   }).catch(err => {
-    console.error("Erro Firebase:", err);
+    console.error("Erro Firebase:", err); // Debug
     listaAtletasDiv.innerHTML = "<p style='color:red;'>Erro ao carregar dados. Verifique a conexão.</p>";
   });
 }
