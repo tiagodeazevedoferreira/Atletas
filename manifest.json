@@ -2,7 +2,7 @@
   "name": "Jogos FPFS",
   "short_name": "Jogos da FPFS",
   "description": "Aplicação para controle de jogos da federação paulista de futsal",
-  "start_url": "https://tiagodeazevedoferreira.github.io/FPFS/",
+  "start_url": "https://tiagodeazevedoferreira.github.io/Atletas/",
   "scope": "/TesteAplicativoFutebol/",
   "display": "standalone",
   "background_color": "#ffffff",
