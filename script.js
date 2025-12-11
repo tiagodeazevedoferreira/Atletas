@@ -97,52 +97,56 @@ window.addEventListener("appinstalled", () => {
 function carregarDadosIniciais() {
   listaAtletasDiv.innerHTML = "<p>Carregando dados do banco...</p>";
 
-  db.ref("atletas").once("value", snapshot => {
-    console.log(
-      "Dados Firebase carregados:",
-      snapshot.val() ? "OK" : "Vazio"
-    );
-    const data = snapshot.val() || {};
-    const atletasSet = new Set();
-    todasEquipes = new Set();
+  db.ref("atletas").once(
+    "value",
+    snapshot => {
+      console.log(
+        "Dados Firebase carregados:",
+        snapshot.val() ? "OK" : "Vazio"
+      );
+      const data = snapshot.val() || {};
+      const atletasSet = new Set();
+      todasEquipes = new Set();
 
-    // Ajuste este laço se a estrutura for diferente
-    Object.values(data).forEach(anoObj => {
-      Object.values(anoObj).forEach(categoriasObj => {
-        Object.values(categoriasObj).forEach(equipesObj => {
-          Object.values(equipesObj).forEach(eq => {
-            if (eq.equipe) {
-              todasEquipes.add(eq.equipe);
-            }
-            (eq.atletas || []).forEach(at => {
-              if (at.nome && at.nome.trim()) {
-                atletasSet.add(at.nome.trim());
+      // Ajuste este laço se a estrutura no Firebase for diferente
+      Object.values(data).forEach(anoObj => {
+        Object.values(anoObj).forEach(categoriasObj => {
+          Object.values(categoriasObj).forEach(equipesObj => {
+            Object.values(equipesObj).forEach(eq => {
+              if (eq.equipe) {
+                todasEquipes.add(eq.equipe);
               }
+              (eq.atletas || []).forEach(at => {
+                if (at.nome && at.nome.trim()) {
+                  atletasSet.add(at.nome.trim());
+                }
+              });
             });
           });
         });
       });
-    });
 
-    todosAtletas = Array.from(atletasSet).sort((a, b) =>
-      a.localeCompare(b)
-    );
-    inputAtleta.placeholder = `Buscar entre ${todosAtletas.length.toLocaleString()} atletas`;
+      todosAtletas = Array.from(atletasSet).sort((a, b) =>
+        a.localeCompare(b)
+      );
+      inputAtleta.placeholder = `Buscar entre ${todosAtletas.length.toLocaleString()} atletas`;
 
-    const equipesOrdenadas = Array.from(todasEquipes).sort((a, b) =>
-      a.localeCompare(b)
-    );
-    selEquipe.innerHTML = "";
-    selEquipe.add(new Option("Todas as equipes", ""));
-    equipesOrdenadas.forEach(eq => selEquipe.add(new Option(eq, eq)));
+      const equipesOrdenadas = Array.from(todasEquipes).sort((a, b) =>
+        a.localeCompare(b)
+      );
+      selEquipe.innerHTML = "";
+      selEquipe.add(new Option("Todas as equipes", ""));
+      equipesOrdenadas.forEach(eq => selEquipe.add(new Option(eq, eq)));
 
-    listaAtletasDiv.innerHTML =
-      '<p>Use os filtros acima e clique em <strong>Buscar</strong>.</p>';
-  }, err => {
-    console.error("Erro Firebase:", err);
-    listaAtletasDiv.innerHTML =
-      '<p style="color:red;">Erro ao carregar dados. Verifique a conexão.</p>';
-  });
+      listaAtletasDiv.innerHTML =
+        '<p>Use os filtros acima e clique em <strong>Buscar</strong>.</p>';
+    },
+    err => {
+      console.error("Erro Firebase:", err);
+      listaAtletasDiv.innerHTML =
+        '<p style="color:red;">Erro ao carregar dados. Verifique a conexão.</p>';
+    }
+  );
 }
 
 // ====================================
@@ -255,7 +259,9 @@ function buscarHistoricoAtleta(nome) {
           const categoria = formatarCategoria(catKey);
           Object.values(equipesObj).forEach(eq => {
             const tem = (eq.atletas || []).some(
-              a => a.nome && a.nome.trim().toLowerCase() === nome.toLowerCase()
+              a =>
+                a.nome &&
+                a.nome.trim().toLowerCase() === nome.trim().toLowerCase()
             );
             if (tem) {
               if (!historico[ano]) historico[ano] = [];
