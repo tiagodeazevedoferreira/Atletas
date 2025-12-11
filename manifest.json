@@ -9,13 +9,13 @@
   "theme_color": "#0b3d91",
   "icons": [
     {
-      "src": "/Atletas/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/Atletas/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -23,7 +23,7 @@
   ],
   "screenshots": [
     {
-      "src": "/Atletas/screenshot1.png",
+      "src": "screenshot1.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"
