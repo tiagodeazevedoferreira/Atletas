@@ -1,9 +1,9 @@
 {
-  "name": "Jogos FPFS",
-  "short_name": "Jogos da FPFS",
-  "description": "Aplicação para controle de jogos da federação paulista de futsal",
+  "name": "Busca Atletas",
+  "short_name": "Busca Atletas",
+  "description": "Aplicação para buscar o histórico dos atletas da iniciação de futsal",
   "start_url": "https://tiagodeazevedoferreira.github.io/Atletas/",
-  "scope": "/TesteAplicativoFutebol/",
+  "scope": "/Atletas/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1e40af",
