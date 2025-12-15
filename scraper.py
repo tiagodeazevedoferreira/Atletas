@@ -71,7 +71,7 @@ def load_links():
     try:
         df = pd.read_excel(EXCEL_PATH)
         print(f"✓ {len(df)} linhas lidas de {EXCEL_PATH}")
-        print(f"  Colunas encontradas: {list(df.columns)}")
+        print(f"  Colunas encontradas: {list(df.columns)}")  # Log para debug
         return df
     except FileNotFoundError:
         print(f"✗ Erro: Arquivo '{EXCEL_PATH}' não encontrado!")
@@ -94,28 +94,27 @@ def scrape_atletas_from_page(driver, url):
         print(f"  → Acessando: {url}")
         driver.get(url)
         
-        # Aguarda o carregamento da tabela (ajuste o seletor se necessário)
-        table = WebDriverWait(driver, 20).until(
+        # Aguarda o carregamento da tabela (ajustado para 30s)
+        table = WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "table"))
         )
         
         rows = table.find_elements(By.TAG_NAME, "tr")
+        print(f"    → Encontradas {len(rows)} linhas na tabela")  # Log para debug
         atletas = []
         
         for i, row in enumerate(rows[1:], 1):  # Pula cabeçalho
             cols = row.find_elements(By.TAG_NAME, "td")
-            texts = [c.text.strip() for c in cols]
-            
-            if not any(texts):
+            if len(cols) < 2:  # Pula linhas inválidas (menos de 2 colunas)
+                print(f"      - Linha {i} pulada: menos de 2 colunas")
                 continue
             
-            # Exemplo: adapte conforme as colunas reais da sua tabela
+            texts = [c.text.strip() for c in cols]
+            
             atleta = {
                 "numero": texts[0] if len(texts) > 0 else "",
                 "nome": texts[1] if len(texts) > 1 else "",
-                "posicao": texts[2] if len(texts) > 2 else "",
-                "data_nascimento": texts[3] if len(texts) > 3 else "",
-                "nacionalidade": texts[4] if len(texts) > 4 else "",
+                "apelido": texts[2] if len(texts) > 2 else "",
             }
             atletas.append(atleta)
         
@@ -185,7 +184,7 @@ def main():
             divisao = row.get("Divisão", "")
             equipe = row.get("Nome da Equipe", "")
             equipe_id = row.get("ID")
-            url = row.get("URL da Página de Atletas", "")
+            url = row.get("URLdaPáginadeAtletas", "")  # Coluna corrigida!
             
             if not url or pd.isna(url):
                 print(f"✗ {equipe} - URL vazia")
@@ -208,8 +207,8 @@ def main():
                 print(f"    ✗ Erro: {e}")
                 erro += 1
             
-            # Aguarda 2 segundos entre requisições (respeita servidor)
-            time.sleep(2)
+            # Aguarda 3 segundos entre requisições (respeita servidor)
+            time.sleep(3)
         
         print(f"\n" + "="*60)
         print(f"✓ Sucesso: {sucesso} | ✗ Erro: {erro}")
