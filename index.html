@@ -20,6 +20,7 @@
   <nav class="tabs">
     <button class="tab-btn active" data-aba="busca">Busca</button>
     <button class="tab-btn" data-aba="progressao">Progressão Sub7 → 2025</button>
+    <button class="tab-btn" data-aba="fieis">Atletas Fieis</button>
   </nav>
 
   <main>
@@ -72,6 +73,23 @@
       <div id="lista-progressao"></div>
     </section>
 
+    <!-- ABA 3: ATLETAS QUE NUNCA MUDARAM DE EQUIPE -->
+    <section id="aba-fieis" class="aba-content">
+      <h2>Atletas que nunca mudaram de equipe</h2>
+      
+      <!-- Filtro por atleta -->
+      <div style="margin-bottom: 20px;">
+        <label for="filtro-fieis-atleta">Filtrar por atleta:</label>
+        <div class="combobox-container">
+          <input type="text" id="filtro-fieis-atleta" placeholder="Digite o nome do atleta (opcional)..." autocomplete="off" />
+          <div id="filtro-fieis-lista" class="combobox-lista"></div>
+        </div>
+        <small id="fieis-atleta-selecionado" style="display:block; margin-top:8px; color:#0b3d91; font-weight:bold;"></small>
+      </div>
+
+      <p id="fieis-info">Lista em ordem alfabética • Carregando dados...</p>
+      <div id="lista-fieis"></div>
+    </section>
 
 
   </main>

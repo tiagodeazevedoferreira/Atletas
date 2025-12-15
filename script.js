@@ -36,6 +36,13 @@ const labelProgressaoAtletaSel = document.getElementById("progressao-atleta-sele
 const listaProgressaoDiv = document.getElementById("lista-progressao");
 const progressaoInfo = document.getElementById("progressao-info");
 
+// Elementos da aba fieis
+const inputFieisAtleta = document.getElementById("filtro-fieis-atleta");
+const listaFieisAtleta = document.getElementById("filtro-fieis-lista");
+const labelFieisAtletaSel = document.getElementById("fieis-atleta-selecionado");
+const listaFieisDiv = document.getElementById("lista-fieis");
+const fieisInfo = document.getElementById("fieis-info");
+
 // Estado geral
 let atletaSelecionado = "";
 let equipeSelecionadaApelido = "";
@@ -44,13 +51,18 @@ let todosAtletas = [];
 let timesApelidosMap = {};
 let apelidosParaTimesMap = {};
 
-// Estado para navegação "Voltar" na aba busca
+// Estado para navegação "Voltar"
 let ultimoResultadoEquipeHTML = null;
+let ultimoResultadoProgressaoHTML = null;
+let ultimoResultadoFieisHTML = null;
 
 // Estado da progressão
-let atletasProgressao = []; // Array com todos os atletas da progressão (em ordem alfabética)
+let atletasProgressao = [];
 let atletaProgressaoSelecionado = "";
-let ultimoResultadoProgressaoHTML = null; // Novo estado para voltar na aba progressão
+
+// Estado da aba fieis
+let atletasFieis = []; // [{nome, equipe, anosJogados}]
+let atletaFieisSelecionado = "";
 
 // ====================================
 // SERVICE WORKER + BOTÃO INSTALAR
@@ -87,7 +99,6 @@ installButton.onclick = () => {
 function carregarDadosIniciais() {
   listaAtletasDiv.innerHTML = "<p>Carregando dados...</p>";
 
-  // Carregar DE-PARA de equipes
   db.ref("times_apelidos").once("value", snapshot => {
     const lista = snapshot.val() || [];
     timesApelidosMap = {};
@@ -105,7 +116,6 @@ function carregarDadosIniciais() {
     preencherSelectEquipesComApelidos();
   });
 
-  // Carregar todos os atletas para o combobox
   db.ref("atletas").once("value", snapshot => {
     const data = snapshot.val() || {};
     const atletasSet = new Set();
@@ -173,20 +183,22 @@ function limparTudo() {
   ultimoResultadoEquipeHTML = null;
   listaAtletasDiv.innerHTML = "<p>Use os filtros e clique em <strong>Buscar</strong>.</p>";
 
-  // Limpa filtro e estado da progressão
   if (inputProgressaoAtleta) {
     inputProgressaoAtleta.value = "";
     labelProgressaoAtletaSel.textContent = "";
     atletaProgressaoSelecionado = "";
     ultimoResultadoProgressaoHTML = null;
-    if (listaProgressaoDiv) {
-      renderizarListaProgressao(); // Atualiza a lista se a aba estiver aberta
-    }
+  }
+  if (inputFieisAtleta) {
+    inputFieisAtleta.value = "";
+    labelFieisAtletaSel.textContent = "";
+    atletaFieisSelecionado = "";
+    ultimoResultadoFieisHTML = null;
   }
 }
 
 // ====================================
-// FUNÇÃO PARA APLICAR CLIQUES NOS ATLETAS (ABA BUSCA)
+// FUNÇÕES GERAIS DE BUSCA E RENDER (ABA BUSCA)
 // ====================================
 function aplicarEventosCliqueAtletas() {
   document.querySelectorAll(".clickable-atleta").forEach(el => {
@@ -198,10 +210,7 @@ function aplicarEventosCliqueAtletas() {
   });
 }
 
-// ====================================
-// BUSCAS (ABA BUSCA)
-// ====================================
-function buscarHistoricoAtleta(nome, callbackDiv = listaAtletasDiv, isProgressao = false) {
+function buscarHistoricoAtleta(nome) {
   db.ref("atletas").once("value", s => {
     const data = s.val() || {};
     const historico = {};
@@ -219,12 +228,7 @@ function buscarHistoricoAtleta(nome, callbackDiv = listaAtletasDiv, isProgressao
         });
       });
     });
-
-    if (isProgressao) {
-      renderizarHistoricoAtletaProgressao(nome, historico);
-    } else {
-      renderizarHistoricoAtleta(nome, historico);
-    }
+    renderizarHistoricoAtleta(nome, historico);
   });
 }
 
@@ -280,9 +284,6 @@ function buscarAtletaNaEquipe(atletaNome, equipeCompleto) {
   });
 }
 
-// ====================================
-// RENDERIZAÇÃO (ABA BUSCA)
-// ====================================
 function formatarCategoria(key) {
   const map = { "sub7": "Sub-7", "sub07": "Sub-7", "sub8": "Sub-8", "sub08": "Sub-8", "sub9": "Sub-9", "sub09": "Sub-9" };
   return map[key.toLowerCase()] || key.toUpperCase();
@@ -394,20 +395,27 @@ tabBtns.forEach(btn => {
 
     if (aba === "progressao") {
       carregarProgressaoSub7();
+    } else if (aba === "fieis") {
+      carregarAtletasFieis();
     } else {
-      // Limpa filtro da progressão ao sair da aba
       if (inputProgressaoAtleta) {
         inputProgressaoAtleta.value = "";
         labelProgressaoAtletaSel.textContent = "";
         atletaProgressaoSelecionado = "";
         ultimoResultadoProgressaoHTML = null;
       }
+      if (inputFieisAtleta) {
+        inputFieisAtleta.value = "";
+        labelFieisAtletaSel.textContent = "";
+        atletaFieisSelecionado = "";
+        ultimoResultadoFieisHTML = null;
+      }
     }
   });
 });
 
 // ====================================
-// PROGRESSÃO SUB7 2022 → 2025
+// ABA PROGRESSÃO SUB7 → 2025
 // ====================================
 function carregarProgressaoSub7() {
   if (atletasProgressao.length > 0) {
@@ -423,7 +431,6 @@ function carregarProgressaoSub7() {
     const sub7_2022 = new Set();
     const em_2025 = new Set();
 
-    // Atletas Sub-7 em 2022
     if (data["2022"]) {
       Object.entries(data["2022"]).forEach(([catKey, catObj]) => {
         const chave = catKey.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -438,7 +445,6 @@ function carregarProgressaoSub7() {
       });
     }
 
-    // Atletas em qualquer categoria em 2025
     if (data["2025"]) {
       Object.values(data["2025"]).forEach(catObj => {
         Object.values(catObj).forEach(eq => {
@@ -502,48 +508,14 @@ function configurarComboboxProgressao() {
   }
 }
 
-// Função para aplicar cliques nos atletas da progressão
 function aplicarEventosCliqueProgressao() {
   document.querySelectorAll(".clickable-progressao").forEach(el => {
     el.style.cursor = "pointer";
     el.onclick = () => {
       const nomeAtleta = el.getAttribute("data-nome");
-      buscarHistoricoAtleta(nomeAtleta, null, true); // true para indicar aba progressão
+      buscarHistoricoAtleta(nomeAtleta);
     };
   });
-}
-
-// Renderização do histórico na aba progressão
-function renderizarHistoricoAtletaProgressao(nome, historico, subtitulo = "") {
-  if (Object.keys(historico).length === 0) {
-    listaProgressaoDiv.innerHTML = `<p>Nenhum registro encontrado para <strong>${nome}</strong>${subtitulo}.</p>`;
-    return;
-  }
-
-  let html = `<div class="atletas-header"><h3>${subtitulo ? nome + subtitulo : "Histórico: " + nome}</h3></div>`;
-
-  if (ultimoResultadoProgressaoHTML) {
-    html += `<button id="btn-voltar-progressao" class="btn-voltar">← Voltar à lista</button>`;
-  }
-
-  Object.keys(historico).sort((a,b) => b-a).forEach(ano => {
-    const regs = historico[ano];
-    html += `<div class="ano-section"><h4>${ano} (${regs.length} registro${regs.length > 1 ? "s" : ""})</h4>`;
-    regs.forEach(r => {
-      html += `<div class="atleta-card"><div class="atleta-info"><strong>${r.equipe}</strong> <span class="categoria-tag">${r.categoria}</span></div></div>`;
-    });
-    html += `</div>`;
-  });
-
-  listaProgressaoDiv.innerHTML = html;
-
-  const btnVoltar = document.getElementById("btn-voltar-progressao");
-  if (btnVoltar) {
-    btnVoltar.onclick = () => {
-      listaProgressaoDiv.innerHTML = ultimoResultadoProgressaoHTML;
-      aplicarEventosCliqueProgressao();
-    };
-  }
 }
 
 function renderizarListaProgressao() {
@@ -568,10 +540,150 @@ function renderizarListaProgressao() {
   });
   listaProgressaoDiv.innerHTML = html;
 
-  // Salva o HTML para voltar
-  ultimoResultadoProgressaoHTML = listaProgressaoDiv.innerHTML + progressaoInfo.outerHTML; // Inclui info se necessário, mas ajusta conforme
-
+  ultimoResultadoProgressaoHTML = html;
   aplicarEventosCliqueProgressao();
+}
+
+// ====================================
+// ABA 3: ATLETAS FIEIS (com anos jogados e ativos em 2025)
+// ====================================
+function carregarAtletasFieis() {
+  if (atletasFieis.length > 0) {
+    renderizarListaFieis();
+    return;
+  }
+
+  listaFieisDiv.innerHTML = "<p>Carregando dados...</p>";
+  fieisInfo.textContent = "Lista em ordem alfabética • Carregando...";
+
+  db.ref("atletas").once("value", snapshot => {
+    const data = snapshot.val() || {};
+    const atletaEquipeMap = {};
+    const atletaAnosMap = {};
+    const ativos2025 = new Set();
+
+    if (data["2025"]) {
+      Object.values(data["2025"]).forEach(catObj => {
+        Object.values(catObj).forEach(eq => {
+          (eq.atletas || []).forEach(at => {
+            const nome = at.nome?.trim();
+            if (nome) ativos2025.add(nome);
+          });
+        });
+      });
+    }
+
+    Object.entries(data).forEach(([ano, anoObj]) => {
+      Object.entries(anoObj).forEach(([, catObj]) => {
+        Object.values(catObj).forEach(eq => {
+          (eq.atletas || []).forEach(at => {
+            const nome = at.nome?.trim();
+            if (nome && eq.equipe) {
+              if (!atletaEquipeMap[nome]) {
+                atletaEquipeMap[nome] = new Set();
+                atletaAnosMap[nome] = new Set();
+              }
+              atletaEquipeMap[nome].add(eq.equipe.trim());
+              atletaAnosMap[nome].add(ano);
+            }
+          });
+        });
+      });
+    });
+
+    const fieis = [];
+    Object.entries(atletaEquipeMap).forEach(([nome, equipes]) => {
+      if (equipes.size === 1 && ativos2025.has(nome)) {
+        const equipeCompleta = [...equipes][0];
+        const apelido = timesApelidosMap[equipeCompleta] || equipeCompleta;
+        const anosJogados = atletaAnosMap[nome].size;
+        fieis.push({ nome, equipe: apelido, anosJogados });
+      }
+    });
+
+    atletasFieis = fieis.sort((a, b) => a.nome.localeCompare(b.nome));
+
+    if (atletasFieis.length === 0) {
+      fieisInfo.textContent = "";
+      listaFieisDiv.innerHTML = "<p>Nenhum atleta fiel ativo em 2025 encontrado.</p>";
+      return;
+    }
+
+    fieisInfo.textContent = `Lista em ordem alfabética • ${atletasFieis.length} atleta(s) fiel(is) e ativo(s) em 2025`;
+    configurarComboboxFieis();
+    renderizarListaFieis();
+  });
+}
+
+function configurarComboboxFieis() {
+  inputFieisAtleta.addEventListener("focus", () => exibirListaFieis(atletasFieis.map(f => f.nome)));
+  inputFieisAtleta.addEventListener("input", () => filtrarListaFieis(inputFieisAtleta.value.trim()));
+  inputFieisAtleta.addEventListener("blur", () => setTimeout(() => listaFieisAtleta.classList.remove("show"), 200));
+
+  function exibirListaFieis(lista) {
+    listaFieisAtleta.innerHTML = "";
+    if (lista.length === 0) {
+      listaFieisAtleta.innerHTML = '<div class="combobox-item" style="padding:12px;color:#999;">Nenhum atleta encontrado</div>';
+      return;
+    }
+    lista.forEach(nome => {
+      const item = document.createElement("div");
+      item.className = "combobox-item";
+      item.textContent = nome;
+      item.onclick = () => {
+        atletaFieisSelecionado = nome;
+        inputFieisAtleta.value = nome;
+        labelFieisAtletaSel.textContent = `Selecionado: ${nome}`;
+        listaFieisAtleta.classList.remove("show");
+        renderizarListaFieis();
+      };
+      listaFieisAtleta.appendChild(item);
+    });
+    listaFieisAtleta.classList.add("show");
+  }
+
+  function filtrarListaFieis(termo) {
+    if (!termo) return exibirListaFieis(atletasFieis.map(f => f.nome));
+    const filtrados = atletasFieis.filter(f => f.nome.toLowerCase().includes(termo.toLowerCase())).map(f => f.nome);
+    exibirListaFieis(filtrados);
+  }
+}
+
+function aplicarEventosCliqueFieis() {
+  document.querySelectorAll(".clickable-fiel").forEach(el => {
+    el.style.cursor = "pointer";
+    el.onclick = () => {
+      const nome = el.dataset.nome;
+      buscarHistoricoAtleta(nome);
+    };
+  });
+}
+
+function renderizarListaFieis() {
+  let listaParaMostrar = atletasFieis;
+
+  if (atletaFieisSelecionado) {
+    listaParaMostrar = atletasFieis.filter(f => f.nome === atletaFieisSelecionado);
+  }
+
+  if (listaParaMostrar.length === 0) {
+    listaFieisDiv.innerHTML = "<p>Nenhum atleta corresponde ao filtro.</p>";
+    return;
+  }
+
+  let html = "";
+  listaParaMostrar.forEach(f => {
+    const anosTexto = f.anosJogados === 1 ? "1 ano" : `${f.anosJogados} anos`;
+    html += `<div class="progressao-item">
+      <div class="clickable-fiel" data-nome="${f.nome}">
+        <strong>${f.nome}</strong> <small>— Sempre no ${f.equipe} (${anosTexto})</small>
+      </div>
+    </div>`;
+  });
+
+  listaFieisDiv.innerHTML = html;
+  ultimoResultadoFieisHTML = html;
+  aplicarEventosCliqueFieis();
 }
 
 // ====================================
