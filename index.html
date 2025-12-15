@@ -57,9 +57,23 @@
     <!-- ABA 2: PROGRESSÃO SUB7 2022 QUE AINDA JOGAM EM 2025 -->
     <section id="aba-progressao" class="aba-content">
       <h2>Atletas Sub-7 em 2022 que ainda jogam em 2025</h2>
-      <p>Lista em ordem alfabética • Carregando dados...</p>
+      
+      <!-- Filtro por atleta na aba progressão -->
+      <div style="margin-bottom: 20px;">
+        <label for="filtro-progressao-atleta">Filtrar por atleta:</label>
+        <div class="combobox-container">
+          <input type="text" id="filtro-progressao-atleta" placeholder="Digite o nome do atleta (opcional)..." autocomplete="off" />
+          <div id="filtro-progressao-lista" class="combobox-lista"></div>
+        </div>
+        <small id="progressao-atleta-selecionado" style="display:block; margin-top:8px; color:#0b3d91; font-weight:bold;"></small>
+      </div>
+
+      <p id="progressao-info">Lista em ordem alfabética • Carregando dados...</p>
       <div id="lista-progressao"></div>
     </section>
+
+
+
   </main>
 
   <footer>

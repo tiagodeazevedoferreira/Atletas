@@ -365,3 +365,9 @@ footer {
 .progressao-item strong {
   color: #0b3d91;
 }
+
+/* Reutiliza os estilos existentes do combobox da aba principal */
+#filtro-progressao-atleta {
+  width: 100%;
+  max-width: 400px;
+}

@@ -28,9 +28,15 @@ const listaAtletasDiv = document.getElementById("lista-atletas");
 // Elementos das abas
 const tabBtns = document.querySelectorAll(".tab-btn");
 const abaContents = document.querySelectorAll(".aba-content");
-const listaProgressaoDiv = document.getElementById("lista-progressao");
 
-// Estado
+// Elementos da aba progressão
+const inputProgressaoAtleta = document.getElementById("filtro-progressao-atleta");
+const listaProgressaoAtleta = document.getElementById("filtro-progressao-lista");
+const labelProgressaoAtletaSel = document.getElementById("progressao-atleta-selecionado");
+const listaProgressaoDiv = document.getElementById("lista-progressao");
+const progressaoInfo = document.getElementById("progressao-info");
+
+// Estado geral
 let atletaSelecionado = "";
 let equipeSelecionadaApelido = "";
 let equipeSelecionadaCompleto = "";
@@ -38,8 +44,13 @@ let todosAtletas = [];
 let timesApelidosMap = {};
 let apelidosParaTimesMap = {};
 
-// Estado para navegação "Voltar"
+// Estado para navegação "Voltar" na aba busca
 let ultimoResultadoEquipeHTML = null;
+
+// Estado da progressão
+let atletasProgressao = []; // Array com todos os atletas da progressão (em ordem alfabética)
+let atletaProgressaoSelecionado = "";
+let ultimoResultadoProgressaoHTML = null; // Novo estado para voltar na aba progressão
 
 // ====================================
 // SERVICE WORKER + BOTÃO INSTALAR
@@ -71,11 +82,12 @@ installButton.onclick = () => {
 };
 
 // ====================================
-// CARREGAR DADOS INICIAIS
+// CARREGAR DADOS INICIAIS (ABA BUSCA)
 // ====================================
 function carregarDadosIniciais() {
   listaAtletasDiv.innerHTML = "<p>Carregando dados...</p>";
 
+  // Carregar DE-PARA de equipes
   db.ref("times_apelidos").once("value", snapshot => {
     const lista = snapshot.val() || [];
     timesApelidosMap = {};
@@ -93,6 +105,7 @@ function carregarDadosIniciais() {
     preencherSelectEquipesComApelidos();
   });
 
+  // Carregar todos os atletas para o combobox
   db.ref("atletas").once("value", snapshot => {
     const data = snapshot.val() || {};
     const atletasSet = new Set();
@@ -122,7 +135,7 @@ function preencherSelectEquipesComApelidos() {
 }
 
 // ====================================
-// EVENTOS PRINCIPAIS
+// EVENTOS PRINCIPAIS (ABA BUSCA)
 // ====================================
 selEquipe.addEventListener("change", () => {
   equipeSelecionadaApelido = selEquipe.value;
@@ -159,10 +172,21 @@ function limparTudo() {
   listaAtleta.classList.remove("show");
   ultimoResultadoEquipeHTML = null;
   listaAtletasDiv.innerHTML = "<p>Use os filtros e clique em <strong>Buscar</strong>.</p>";
+
+  // Limpa filtro e estado da progressão
+  if (inputProgressaoAtleta) {
+    inputProgressaoAtleta.value = "";
+    labelProgressaoAtletaSel.textContent = "";
+    atletaProgressaoSelecionado = "";
+    ultimoResultadoProgressaoHTML = null;
+    if (listaProgressaoDiv) {
+      renderizarListaProgressao(); // Atualiza a lista se a aba estiver aberta
+    }
+  }
 }
 
 // ====================================
-// FUNÇÃO PARA APLICAR CLIQUES NOS ATLETAS
+// FUNÇÃO PARA APLICAR CLIQUES NOS ATLETAS (ABA BUSCA)
 // ====================================
 function aplicarEventosCliqueAtletas() {
   document.querySelectorAll(".clickable-atleta").forEach(el => {
@@ -175,9 +199,9 @@ function aplicarEventosCliqueAtletas() {
 }
 
 // ====================================
-// BUSCAS
+// BUSCAS (ABA BUSCA)
 // ====================================
-function buscarHistoricoAtleta(nome) {
+function buscarHistoricoAtleta(nome, callbackDiv = listaAtletasDiv, isProgressao = false) {
   db.ref("atletas").once("value", s => {
     const data = s.val() || {};
     const historico = {};
@@ -195,7 +219,12 @@ function buscarHistoricoAtleta(nome) {
         });
       });
     });
-    renderizarHistoricoAtleta(nome, historico);
+
+    if (isProgressao) {
+      renderizarHistoricoAtletaProgressao(nome, historico);
+    } else {
+      renderizarHistoricoAtleta(nome, historico);
+    }
   });
 }
 
@@ -252,7 +281,7 @@ function buscarAtletaNaEquipe(atletaNome, equipeCompleto) {
 }
 
 // ====================================
-// RENDERIZAÇÃO
+// RENDERIZAÇÃO (ABA BUSCA)
 // ====================================
 function formatarCategoria(key) {
   const map = { "sub7": "Sub-7", "sub07": "Sub-7", "sub8": "Sub-8", "sub08": "Sub-8", "sub9": "Sub-9", "sub09": "Sub-9" };
@@ -286,8 +315,7 @@ function renderizarHistoricoAtleta(nome, historico, subtitulo = "") {
   if (btnVoltar) {
     btnVoltar.onclick = () => {
       listaAtletasDiv.innerHTML = ultimoResultadoEquipeHTML;
-      aplicarEventosCliqueAtletas(); // Reaplica cliques
-      // Não limpa ultimoResultadoEquipeHTML aqui — será atualizado novamente na renderização da equipe
+      aplicarEventosCliqueAtletas();
     };
   }
 }
@@ -313,15 +341,13 @@ function renderizarHistoricoEquipe(equipe, historico) {
     html += `</div>`;
   });
 
-  // Sempre atualiza o HTML salvo (importante para múltiplos "voltar")
   ultimoResultadoEquipeHTML = html;
   listaAtletasDiv.innerHTML = html;
-
   aplicarEventosCliqueAtletas();
 }
 
 // ====================================
-// COMBOBOX ATLETA
+// COMBOBOX ATLETA (ABA BUSCA)
 // ====================================
 inputAtleta.addEventListener("focus", () => abrirLista(todosAtletas));
 inputAtleta.addEventListener("input", () => filtrarLista(inputAtleta.value.trim()));
@@ -353,23 +379,29 @@ function exibirLista(lista) {
   });
 }
 
-
-// Alternar abas
+// ====================================
+// NAVEGAÇÃO POR ABAS
+// ====================================
 tabBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     const aba = btn.dataset.aba;
 
-    // Atualiza botões
     tabBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    // Mostra aba correta
     abaContents.forEach(content => content.classList.remove("active"));
     document.getElementById(`aba-${aba}`).classList.add("active");
 
-    // Se for a aba de progressão, carrega os dados (só na primeira vez ou sempre)
     if (aba === "progressao") {
       carregarProgressaoSub7();
+    } else {
+      // Limpa filtro da progressão ao sair da aba
+      if (inputProgressaoAtleta) {
+        inputProgressaoAtleta.value = "";
+        labelProgressaoAtletaSel.textContent = "";
+        atletaProgressaoSelecionado = "";
+        ultimoResultadoProgressaoHTML = null;
+      }
     }
   });
 });
@@ -378,11 +410,13 @@ tabBtns.forEach(btn => {
 // PROGRESSÃO SUB7 2022 → 2025
 // ====================================
 function carregarProgressaoSub7() {
-  if (listaProgressaoDiv.innerHTML.includes("Carregando") === false && listaProgressaoDiv.innerHTML !== "") {
-    return; // Já carregado
+  if (atletasProgressao.length > 0) {
+    renderizarListaProgressao();
+    return;
   }
 
   listaProgressaoDiv.innerHTML = "<p>Carregando dados da progressão...</p>";
+  progressaoInfo.textContent = "Lista em ordem alfabética • Carregando...";
 
   db.ref("atletas").once("value", snapshot => {
     const data = snapshot.val() || {};
@@ -416,24 +450,129 @@ function carregarProgressaoSub7() {
       });
     }
 
-    const progressao = [...new Set([...sub7_2022].filter(n => em_2025.has(n)))].sort((a, b) => a.localeCompare(b));
+    atletasProgressao = [...new Set([...sub7_2022].filter(n => em_2025.has(n)))].sort((a, b) => a.localeCompare(b));
 
-    if (progressao.length === 0) {
+    if (atletasProgressao.length === 0) {
+      progressaoInfo.textContent = "";
       listaProgressaoDiv.innerHTML = "<p>Nenhum atleta encontrado com essa progressão.</p>";
       return;
     }
 
-    let html = `<p><strong>${progressao.length} atleta(s) encontrado(s):</strong></p>`;
-    progressao.forEach(nome => {
-      html += `<div class="progressao-item"><strong>${nome}</strong></div>`;
-    });
-    listaProgressaoDiv.innerHTML = html;
+    progressaoInfo.textContent = `Lista em ordem alfabética • ${atletasProgressao.length} atleta(s) encontrado(s)`;
+
+    configurarComboboxProgressao();
+    renderizarListaProgressao();
   }).catch(err => {
     console.error(err);
     listaProgressaoDiv.innerHTML = "<p style='color:red;'>Erro ao carregar dados.</p>";
   });
 }
 
+function configurarComboboxProgressao() {
+  inputProgressaoAtleta.addEventListener("focus", () => exibirListaProgressao(atletasProgressao));
+  inputProgressaoAtleta.addEventListener("input", () => filtrarListaProgressao(inputProgressaoAtleta.value.trim()));
+  inputProgressaoAtleta.addEventListener("blur", () => setTimeout(() => listaProgressaoAtleta.classList.remove("show"), 200));
+
+  function exibirListaProgressao(lista) {
+    listaProgressaoAtleta.innerHTML = "";
+    if (lista.length === 0) {
+      listaProgressaoAtleta.innerHTML = '<div class="combobox-item" style="padding:12px;color:#999;">Nenhum atleta encontrado</div>';
+      return;
+    }
+    lista.forEach(nome => {
+      const item = document.createElement("div");
+      item.className = "combobox-item";
+      item.textContent = nome;
+      item.onclick = () => {
+        atletaProgressaoSelecionado = nome;
+        inputProgressaoAtleta.value = nome;
+        labelProgressaoAtletaSel.textContent = `Selecionado: ${nome}`;
+        listaProgressaoAtleta.classList.remove("show");
+        renderizarListaProgressao();
+      };
+      listaProgressaoAtleta.appendChild(item);
+    });
+    listaProgressaoAtleta.classList.add("show");
+  }
+
+  function filtrarListaProgressao(termo) {
+    if (!termo) return exibirListaProgressao(atletasProgressao);
+    const filtrados = atletasProgressao.filter(n => n.toLowerCase().includes(termo.toLowerCase()));
+    exibirListaProgressao(filtrados);
+  }
+}
+
+// Função para aplicar cliques nos atletas da progressão
+function aplicarEventosCliqueProgressao() {
+  document.querySelectorAll(".clickable-progressao").forEach(el => {
+    el.style.cursor = "pointer";
+    el.onclick = () => {
+      const nomeAtleta = el.getAttribute("data-nome");
+      buscarHistoricoAtleta(nomeAtleta, null, true); // true para indicar aba progressão
+    };
+  });
+}
+
+// Renderização do histórico na aba progressão
+function renderizarHistoricoAtletaProgressao(nome, historico, subtitulo = "") {
+  if (Object.keys(historico).length === 0) {
+    listaProgressaoDiv.innerHTML = `<p>Nenhum registro encontrado para <strong>${nome}</strong>${subtitulo}.</p>`;
+    return;
+  }
+
+  let html = `<div class="atletas-header"><h3>${subtitulo ? nome + subtitulo : "Histórico: " + nome}</h3></div>`;
+
+  if (ultimoResultadoProgressaoHTML) {
+    html += `<button id="btn-voltar-progressao" class="btn-voltar">← Voltar à lista</button>`;
+  }
+
+  Object.keys(historico).sort((a,b) => b-a).forEach(ano => {
+    const regs = historico[ano];
+    html += `<div class="ano-section"><h4>${ano} (${regs.length} registro${regs.length > 1 ? "s" : ""})</h4>`;
+    regs.forEach(r => {
+      html += `<div class="atleta-card"><div class="atleta-info"><strong>${r.equipe}</strong> <span class="categoria-tag">${r.categoria}</span></div></div>`;
+    });
+    html += `</div>`;
+  });
+
+  listaProgressaoDiv.innerHTML = html;
+
+  const btnVoltar = document.getElementById("btn-voltar-progressao");
+  if (btnVoltar) {
+    btnVoltar.onclick = () => {
+      listaProgressaoDiv.innerHTML = ultimoResultadoProgressaoHTML;
+      aplicarEventosCliqueProgressao();
+    };
+  }
+}
+
+function renderizarListaProgressao() {
+  let listaParaMostrar = atletasProgressao;
+
+  if (atletaProgressaoSelecionado) {
+    listaParaMostrar = atletasProgressao.filter(n => n === atletaProgressaoSelecionado);
+  }
+
+  if (listaParaMostrar.length === 0) {
+    listaProgressaoDiv.innerHTML = "<p>Nenhum atleta corresponde ao filtro.</p>";
+    return;
+  }
+
+  let html = "";
+  listaParaMostrar.forEach(nome => {
+    html += `<div class="progressao-item">
+      <div class="clickable-progressao" data-nome="${nome}">
+        <strong>${nome}</strong>
+      </div>
+    </div>`;
+  });
+  listaProgressaoDiv.innerHTML = html;
+
+  // Salva o HTML para voltar
+  ultimoResultadoProgressaoHTML = listaProgressaoDiv.innerHTML + progressaoInfo.outerHTML; // Inclui info se necessário, mas ajusta conforme
+
+  aplicarEventosCliqueProgressao();
+}
 
 // ====================================
 // INICIAR
