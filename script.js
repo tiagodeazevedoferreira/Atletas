@@ -25,6 +25,11 @@ const btnCarregar = document.getElementById("btn-carregar");
 const btnLimpar = document.getElementById("btn-limpar");
 const listaAtletasDiv = document.getElementById("lista-atletas");
 
+// Elementos das abas
+const tabBtns = document.querySelectorAll(".tab-btn");
+const abaContents = document.querySelectorAll(".aba-content");
+const listaProgressaoDiv = document.getElementById("lista-progressao");
+
 // Estado
 let atletaSelecionado = "";
 let equipeSelecionadaApelido = "";
@@ -34,7 +39,7 @@ let timesApelidosMap = {};
 let apelidosParaTimesMap = {};
 
 // Estado para navegação "Voltar"
-let ultimoResultadoEquipeHTML = null; // Guarda o HTML completo da listagem da equipe
+let ultimoResultadoEquipeHTML = null;
 
 // ====================================
 // SERVICE WORKER + BOTÃO INSTALAR
@@ -164,7 +169,6 @@ function aplicarEventosCliqueAtletas() {
     el.style.cursor = "pointer";
     el.onclick = () => {
       const nomeAtleta = el.getAttribute("data-nome");
-      atletaSelecionado = nomeAtleta; // Atualiza o estado (opcional, mas ajuda)
       buscarHistoricoAtleta(nomeAtleta);
     };
   });
@@ -263,14 +267,13 @@ function renderizarHistoricoAtleta(nome, historico, subtitulo = "") {
 
   let html = `<div class="atletas-header"><h3>${subtitulo ? nome + subtitulo : "Histórico: " + nome}</h3></div>`;
 
-  // Botão Voltar só aparece se houver listagem anterior da equipe
   if (ultimoResultadoEquipeHTML) {
     html += `<button id="btn-voltar-equipe" class="btn-voltar">← Voltar à equipe</button>`;
   }
 
   Object.keys(historico).sort((a,b) => b-a).forEach(ano => {
     const regs = historico[ano];
-    html += `< vállalkoz<div class="ano-section"><h4>${ano} (${regs.length} registro${regs.length > 1 ? "s" : ""})</h4>`;
+    html += `<div class="ano-section"><h4>${ano} (${regs.length} registro${regs.length > 1 ? "s" : ""})</h4>`;
     regs.forEach(r => {
       html += `<div class="atleta-card"><div class="atleta-info"><strong>${r.equipe}</strong> <span class="categoria-tag">${r.categoria}</span></div></div>`;
     });
@@ -279,13 +282,12 @@ function renderizarHistoricoAtleta(nome, historico, subtitulo = "") {
 
   listaAtletasDiv.innerHTML = html;
 
-  // Evento do botão voltar
   const btnVoltar = document.getElementById("btn-voltar-equipe");
   if (btnVoltar) {
     btnVoltar.onclick = () => {
       listaAtletasDiv.innerHTML = ultimoResultadoEquipeHTML;
-      ultimoResultadoEquipeHTML = null; // Limpa para remover o botão na próxima
-      aplicarEventosCliqueAtletas(); // Reaplica os cliques nos atletas
+      aplicarEventosCliqueAtletas(); // Reaplica cliques
+      // Não limpa ultimoResultadoEquipeHTML aqui — será atualizado novamente na renderização da equipe
     };
   }
 }
@@ -311,11 +313,10 @@ function renderizarHistoricoEquipe(equipe, historico) {
     html += `</div>`;
   });
 
-  // Salva o HTML completo para poder voltar
+  // Sempre atualiza o HTML salvo (importante para múltiplos "voltar")
   ultimoResultadoEquipeHTML = html;
   listaAtletasDiv.innerHTML = html;
 
-  // Aplica os eventos de clique
   aplicarEventosCliqueAtletas();
 }
 
@@ -351,6 +352,88 @@ function exibirLista(lista) {
     listaAtleta.appendChild(item);
   });
 }
+
+
+// Alternar abas
+tabBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const aba = btn.dataset.aba;
+
+    // Atualiza botões
+    tabBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    // Mostra aba correta
+    abaContents.forEach(content => content.classList.remove("active"));
+    document.getElementById(`aba-${aba}`).classList.add("active");
+
+    // Se for a aba de progressão, carrega os dados (só na primeira vez ou sempre)
+    if (aba === "progressao") {
+      carregarProgressaoSub7();
+    }
+  });
+});
+
+// ====================================
+// PROGRESSÃO SUB7 2022 → 2025
+// ====================================
+function carregarProgressaoSub7() {
+  if (listaProgressaoDiv.innerHTML.includes("Carregando") === false && listaProgressaoDiv.innerHTML !== "") {
+    return; // Já carregado
+  }
+
+  listaProgressaoDiv.innerHTML = "<p>Carregando dados da progressão...</p>";
+
+  db.ref("atletas").once("value", snapshot => {
+    const data = snapshot.val() || {};
+    const sub7_2022 = new Set();
+    const em_2025 = new Set();
+
+    // Atletas Sub-7 em 2022
+    if (data["2022"]) {
+      Object.entries(data["2022"]).forEach(([catKey, catObj]) => {
+        const chave = catKey.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (chave.includes("sub7")) {
+          Object.values(catObj).forEach(eq => {
+            (eq.atletas || []).forEach(at => {
+              const nome = at.nome?.trim();
+              if (nome) sub7_2022.add(nome);
+            });
+          });
+        }
+      });
+    }
+
+    // Atletas em qualquer categoria em 2025
+    if (data["2025"]) {
+      Object.values(data["2025"]).forEach(catObj => {
+        Object.values(catObj).forEach(eq => {
+          (eq.atletas || []).forEach(at => {
+            const nome = at.nome?.trim();
+            if (nome) em_2025.add(nome);
+          });
+        });
+      });
+    }
+
+    const progressao = [...new Set([...sub7_2022].filter(n => em_2025.has(n)))].sort((a, b) => a.localeCompare(b));
+
+    if (progressao.length === 0) {
+      listaProgressaoDiv.innerHTML = "<p>Nenhum atleta encontrado com essa progressão.</p>";
+      return;
+    }
+
+    let html = `<p><strong>${progressao.length} atleta(s) encontrado(s):</strong></p>`;
+    progressao.forEach(nome => {
+      html += `<div class="progressao-item"><strong>${nome}</strong></div>`;
+    });
+    listaProgressaoDiv.innerHTML = html;
+  }).catch(err => {
+    console.error(err);
+    listaProgressaoDiv.innerHTML = "<p style='color:red;'>Erro ao carregar dados.</p>";
+  });
+}
+
 
 // ====================================
 // INICIAR

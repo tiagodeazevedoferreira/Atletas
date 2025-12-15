@@ -317,3 +317,51 @@ footer {
 .btn-voltar:hover {
   background: #5a6268;
 }
+
+/* Abas de navegação */
+.tabs {
+  display: flex;
+  background: #0b3d91;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 14px;
+  background: #0b3d91;
+  color: white;
+  border: none;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tab-btn.active,
+.tab-btn:hover {
+  background: #094a8c;
+}
+
+.aba-content {
+  display: none;
+}
+
+.aba-content.active {
+  display: block;
+}
+
+/* Lista da progressão */
+#lista-progressao {
+  margin-top: 20px;
+}
+
+.progressao-item {
+  padding: 12px 0;
+  border-bottom: 1px dashed #ddd;
+  font-size: 1.1em;
+}
+
+.progressao-item strong {
+  color: #0b3d91;
+}
