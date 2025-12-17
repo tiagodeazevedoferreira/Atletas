@@ -273,34 +273,26 @@ footer {
   }
 }
 
-
-.clickable-atleta {
-  transition: background 0.2s;
-}
-
-.clickable-atleta:hover {
-  background: #e6f0ff;
-  border-radius: 8px;
-  padding: 8px;
-  margin: -8px;
-}
-
-#btn-voltar-equipe {
-  padding: 10px 16px;
-  font-size: 1em;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
+/* Hover melhorado para itens clicáveis (aba 1, progressão e fieis) */
+.clickable-atleta,
+.progressao-item > div,
+#lista-fieis .progressao-item > div {
   cursor: pointer;
-  background: #6c757d;
-  color: white;
+  transition: all 0.2s ease;
+  padding: 8px 12px;
+  margin: -8px -12px;
+  border-radius: 8px;
 }
 
-#btn-voltar-equipe:hover {
-  background: #5a6268;
+.clickable-atleta:hover,
+.progressao-item > div:hover,
+#lista-fieis .progressao-item > div:hover {
+  background: #e6f0ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(11, 61, 145, 0.15);
 }
 
-
+/* Botão voltar */
 .btn-voltar {
   padding: 10px 16px;
   font-size: 1em;
@@ -351,8 +343,9 @@ footer {
   display: block;
 }
 
-/* Lista da progressão */
-#lista-progressao {
+/* Lista da progressão e fieis */
+#lista-progressao,
+#lista-fieis {
   margin-top: 20px;
 }
 
@@ -366,7 +359,6 @@ footer {
   color: #0b3d91;
 }
 
-/* Reutiliza os estilos existentes do combobox da aba principal */
 #filtro-progressao-atleta {
   width: 100%;
   max-width: 400px;

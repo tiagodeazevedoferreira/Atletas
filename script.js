@@ -35,6 +35,7 @@ const listaProgressaoAtleta = document.getElementById("filtro-progressao-lista")
 const labelProgressaoAtletaSel = document.getElementById("progressao-atleta-selecionado");
 const listaProgressaoDiv = document.getElementById("lista-progressao");
 const progressaoInfo = document.getElementById("progressao-info");
+const btnLimparProgressao = document.getElementById("btn-limpar-progressao");
 
 // Elementos da aba fieis
 const inputFieisAtleta = document.getElementById("filtro-fieis-atleta");
@@ -42,6 +43,7 @@ const listaFieisAtleta = document.getElementById("filtro-fieis-lista");
 const labelFieisAtletaSel = document.getElementById("fieis-atleta-selecionado");
 const listaFieisDiv = document.getElementById("lista-fieis");
 const fieisInfo = document.getElementById("fieis-info");
+const btnLimparFieis = document.getElementById("btn-limpar-fieis");
 
 // Estado geral
 let atletaSelecionado = "";
@@ -53,15 +55,13 @@ let apelidosParaTimesMap = {};
 
 // Estado para navegação "Voltar"
 let ultimoResultadoEquipeHTML = null;
-let ultimoResultadoProgressaoHTML = null;
-let ultimoResultadoFieisHTML = null;
 
 // Estado da progressão
 let atletasProgressao = [];
 let atletaProgressaoSelecionado = "";
 
 // Estado da aba fieis
-let atletasFieis = []; // [{nome, equipe, anosJogados}]
+let atletasFieis = [];
 let atletaFieisSelecionado = "";
 
 // ====================================
@@ -187,30 +187,28 @@ function limparTudo() {
     inputProgressaoAtleta.value = "";
     labelProgressaoAtletaSel.textContent = "";
     atletaProgressaoSelecionado = "";
-    ultimoResultadoProgressaoHTML = null;
+    listaProgressaoAtleta.classList.remove("show");
+    if (atletasProgressao.length > 0) renderizarListaProgressao();
   }
   if (inputFieisAtleta) {
     inputFieisAtleta.value = "";
     labelFieisAtletaSel.textContent = "";
     atletaFieisSelecionado = "";
-    ultimoResultadoFieisHTML = null;
+    listaFieisAtleta.classList.remove("show");
+    if (atletasFieis.length > 0) renderizarListaFieis();
   }
 }
 
 // ====================================
-// FUNÇÕES GERAIS DE BUSCA E RENDER (ABA BUSCA)
+// FUNÇÕES GERAIS DE BUSCA E RENDER
 // ====================================
-function aplicarEventosCliqueAtletas() {
-  document.querySelectorAll(".clickable-atleta").forEach(el => {
-    el.style.cursor = "pointer";
-    el.onclick = () => {
-      const nomeAtleta = el.getAttribute("data-nome");
-      buscarHistoricoAtleta(nomeAtleta);
-    };
-  });
+function formatarCategoria(key) {
+  const map = { "sub7": "Sub-7", "sub07": "Sub-7", "sub8": "Sub-8", "sub08": "Sub-8", "sub9": "Sub-9", "sub09": "Sub-9" };
+  return map[key.toLowerCase()] || key.toUpperCase();
 }
 
-function buscarHistoricoAtleta(nome) {
+function buscarHistoricoAtleta(nome, targetDiv = listaAtletasDiv) {
+  targetDiv.innerHTML = "<p>Carregando histórico...</p>";
   db.ref("atletas").once("value", s => {
     const data = s.val() || {};
     const historico = {};
@@ -228,11 +226,44 @@ function buscarHistoricoAtleta(nome) {
         });
       });
     });
-    renderizarHistoricoAtleta(nome, historico);
+    renderizarHistoricoAtleta(nome, historico, targetDiv);
   });
 }
 
+function renderizarHistoricoAtleta(nome, historico, targetDiv) {
+  if (Object.keys(historico).length === 0) {
+    targetDiv.innerHTML = `<p>Nenhum registro encontrado para <strong>${nome}</strong>.</p>`;
+    return;
+  }
+
+  let html = `<div class="atletas-header"><h3>Histórico: ${nome}</h3></div>`;
+
+  if (targetDiv === listaAtletasDiv && ultimoResultadoEquipeHTML) {
+    html += `<button class="btn-voltar" id="btn-voltar-equipe-tmp">← Voltar à equipe</button>`;
+  }
+
+  Object.keys(historico).sort((a,b) => b-a).forEach(ano => {
+    const regs = historico[ano];
+    html += `<div class="ano-section"><h4>${ano} (${regs.length} registro${regs.length > 1 ? "s" : ""})</h4>`;
+    regs.forEach(r => {
+      html += `<div class="atleta-card"><div class="atleta-info"><strong>${r.equipe}</strong> <span class="categoria-tag">${r.categoria}</span></div></div>`;
+    });
+    html += `</div>`;
+  });
+
+  targetDiv.innerHTML = html;
+
+  const btnVoltar = document.getElementById("btn-voltar-equipe-tmp");
+  if (btnVoltar) {
+    btnVoltar.onclick = () => {
+      listaAtletasDiv.innerHTML = ultimoResultadoEquipeHTML;
+      aplicarEventosCliqueAtletas();
+    };
+  }
+}
+
 function buscarHistoricoEquipe(nomeCompleto) {
+  listaAtletasDiv.innerHTML = "<p>Carregando...</p>";
   db.ref("atletas").once("value", s => {
     const data = s.val() || {};
     const historico = {};
@@ -259,7 +290,38 @@ function buscarHistoricoEquipe(nomeCompleto) {
   });
 }
 
+function renderizarHistoricoEquipe(apelido, historico) {
+  let html = `<div class="atletas-header"><h3>Histórico da equipe: ${apelido}</h3></div>`;
+
+  Object.keys(historico).sort((a,b) => b-a).forEach(ano => {
+    const regs = historico[ano];
+    // Ordenação alfabética por nome do atleta
+    regs.sort((a, b) => a.nome.localeCompare(b.nome));
+
+    html += `<div class="ano-section"><h4>${ano} (${regs.length} atleta${regs.length > 1 ? "s" : ""})</h4>`;
+    regs.forEach(r => {
+      html += `<div class="atleta-card clickable-atleta" data-nome="${r.nome}"><div class="atleta-info"><strong>${r.nome}</strong> <span class="categoria-tag">${r.categoria}</span></div></div>`;
+    });
+    html += `</div>`;
+  });
+
+  ultimoResultadoEquipeHTML = html;
+  listaAtletasDiv.innerHTML = html;
+  aplicarEventosCliqueAtletas();
+}
+
+function aplicarEventosCliqueAtletas() {
+  document.querySelectorAll(".clickable-atleta").forEach(el => {
+    el.style.cursor = "pointer";
+    el.onclick = () => {
+      const nomeAtleta = el.getAttribute("data-nome");
+      buscarHistoricoAtleta(nomeAtleta);
+    };
+  });
+}
+
 function buscarAtletaNaEquipe(atletaNome, equipeCompleto) {
+  listaAtletasDiv.innerHTML = "<p>Carregando...</p>";
   db.ref("atletas").once("value", s => {
     const data = s.val() || {};
     const historico = {};
@@ -279,77 +341,11 @@ function buscarAtletaNaEquipe(atletaNome, equipeCompleto) {
         });
       });
     });
-    const apelido = timesApelidosMap[equipeCompleto] || equipeCompleto;
-    renderizarHistoricoAtleta(atletaNome, historico, `na equipe ${apelido}`);
+    renderizarHistoricoAtleta(atletaNome, historico, listaAtletasDiv);
   });
 }
 
-function formatarCategoria(key) {
-  const map = { "sub7": "Sub-7", "sub07": "Sub-7", "sub8": "Sub-8", "sub08": "Sub-8", "sub9": "Sub-9", "sub09": "Sub-9" };
-  return map[key.toLowerCase()] || key.toUpperCase();
-}
-
-function renderizarHistoricoAtleta(nome, historico, subtitulo = "") {
-  if (Object.keys(historico).length === 0) {
-    listaAtletasDiv.innerHTML = `<p>Nenhum registro encontrado para <strong>${nome}</strong>${subtitulo}.</p>`;
-    return;
-  }
-
-  let html = `<div class="atletas-header"><h3>${subtitulo ? nome + subtitulo : "Histórico: " + nome}</h3></div>`;
-
-  if (ultimoResultadoEquipeHTML) {
-    html += `<button id="btn-voltar-equipe" class="btn-voltar">← Voltar à equipe</button>`;
-  }
-
-  Object.keys(historico).sort((a,b) => b-a).forEach(ano => {
-    const regs = historico[ano];
-    html += `<div class="ano-section"><h4>${ano} (${regs.length} registro${regs.length > 1 ? "s" : ""})</h4>`;
-    regs.forEach(r => {
-      html += `<div class="atleta-card"><div class="atleta-info"><strong>${r.equipe}</strong> <span class="categoria-tag">${r.categoria}</span></div></div>`;
-    });
-    html += `</div>`;
-  });
-
-  listaAtletasDiv.innerHTML = html;
-
-  const btnVoltar = document.getElementById("btn-voltar-equipe");
-  if (btnVoltar) {
-    btnVoltar.onclick = () => {
-      listaAtletasDiv.innerHTML = ultimoResultadoEquipeHTML;
-      aplicarEventosCliqueAtletas();
-    };
-  }
-}
-
-function renderizarHistoricoEquipe(equipe, historico) {
-  if (Object.keys(historico).length === 0) {
-    listaAtletasDiv.innerHTML = `<p>Nenhum registro encontrado para <strong>${equipe}</strong>.</p>`;
-    return;
-  }
-
-  let html = `<div class="atletas-header"><h3>Histórico da Equipe: ${equipe}</h3></div>`;
-
-  Object.keys(historico).sort((a,b) => b-a).forEach(ano => {
-    const regs = historico[ano];
-    html += `<div class="ano-section"><h4>${ano} (${regs.length} atleta${regs.length > 1 ? "s" : ""})</h4>`;
-    regs.forEach(r => {
-      html += `<div class="atleta-card">
-        <div class="atleta-info clickable-atleta" data-nome="${r.nome}">
-          <strong>${r.nome}</strong> <span class="categoria-tag">${r.categoria}</span>
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
-  });
-
-  ultimoResultadoEquipeHTML = html;
-  listaAtletasDiv.innerHTML = html;
-  aplicarEventosCliqueAtletas();
-}
-
-// ====================================
-// COMBOBOX ATLETA (ABA BUSCA)
-// ====================================
+// Combobox aba busca
 inputAtleta.addEventListener("focus", () => abrirLista(todosAtletas));
 inputAtleta.addEventListener("input", () => filtrarLista(inputAtleta.value.trim()));
 inputAtleta.addEventListener("blur", () => setTimeout(() => listaAtleta.classList.remove("show"), 200));
@@ -386,31 +382,13 @@ function exibirLista(lista) {
 tabBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     const aba = btn.dataset.aba;
-
     tabBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-
     abaContents.forEach(content => content.classList.remove("active"));
     document.getElementById(`aba-${aba}`).classList.add("active");
 
-    if (aba === "progressao") {
-      carregarProgressaoSub7();
-    } else if (aba === "fieis") {
-      carregarAtletasFieis();
-    } else {
-      if (inputProgressaoAtleta) {
-        inputProgressaoAtleta.value = "";
-        labelProgressaoAtletaSel.textContent = "";
-        atletaProgressaoSelecionado = "";
-        ultimoResultadoProgressaoHTML = null;
-      }
-      if (inputFieisAtleta) {
-        inputFieisAtleta.value = "";
-        labelFieisAtletaSel.textContent = "";
-        atletaFieisSelecionado = "";
-        ultimoResultadoFieisHTML = null;
-      }
-    }
+    if (aba === "progressao") carregarProgressaoSub7();
+    else if (aba === "fieis") carregarAtletasFieis();
   });
 });
 
@@ -465,12 +443,8 @@ function carregarProgressaoSub7() {
     }
 
     progressaoInfo.textContent = `Lista em ordem alfabética • ${atletasProgressao.length} atleta(s) encontrado(s)`;
-
     configurarComboboxProgressao();
     renderizarListaProgressao();
-  }).catch(err => {
-    console.error(err);
-    listaProgressaoDiv.innerHTML = "<p style='color:red;'>Erro ao carregar dados.</p>";
   });
 }
 
@@ -478,6 +452,14 @@ function configurarComboboxProgressao() {
   inputProgressaoAtleta.addEventListener("focus", () => exibirListaProgressao(atletasProgressao));
   inputProgressaoAtleta.addEventListener("input", () => filtrarListaProgressao(inputProgressaoAtleta.value.trim()));
   inputProgressaoAtleta.addEventListener("blur", () => setTimeout(() => listaProgressaoAtleta.classList.remove("show"), 200));
+
+  btnLimparProgressao.addEventListener("click", () => {
+    inputProgressaoAtleta.value = "";
+    labelProgressaoAtletaSel.textContent = "";
+    atletaProgressaoSelecionado = "";
+    listaProgressaoAtleta.classList.remove("show");
+    renderizarListaProgressao();
+  });
 
   function exibirListaProgressao(lista) {
     listaProgressaoAtleta.innerHTML = "";
@@ -494,7 +476,7 @@ function configurarComboboxProgressao() {
         inputProgressaoAtleta.value = nome;
         labelProgressaoAtletaSel.textContent = `Selecionado: ${nome}`;
         listaProgressaoAtleta.classList.remove("show");
-        renderizarListaProgressao();
+        buscarHistoricoAtleta(nome, listaProgressaoDiv);
       };
       listaProgressaoAtleta.appendChild(item);
     });
@@ -508,44 +490,22 @@ function configurarComboboxProgressao() {
   }
 }
 
-function aplicarEventosCliqueProgressao() {
-  document.querySelectorAll(".clickable-progressao").forEach(el => {
-    el.style.cursor = "pointer";
-    el.onclick = () => {
-      const nomeAtleta = el.getAttribute("data-nome");
-      buscarHistoricoAtleta(nomeAtleta);
-    };
-  });
-}
-
 function renderizarListaProgressao() {
-  let listaParaMostrar = atletasProgressao;
-
-  if (atletaProgressaoSelecionado) {
-    listaParaMostrar = atletasProgressao.filter(n => n === atletaProgressaoSelecionado);
-  }
-
-  if (listaParaMostrar.length === 0) {
-    listaProgressaoDiv.innerHTML = "<p>Nenhum atleta corresponde ao filtro.</p>";
-    return;
-  }
+  if (atletaProgressaoSelecionado) return;
 
   let html = "";
-  listaParaMostrar.forEach(nome => {
+  atletasProgressao.forEach(nome => {
     html += `<div class="progressao-item">
-      <div class="clickable-progressao" data-nome="${nome}">
+      <div style="cursor:pointer;" onclick="buscarHistoricoAtleta('${nome.replace(/'/g, "\\'")}', listaProgressaoDiv)">
         <strong>${nome}</strong>
       </div>
     </div>`;
   });
   listaProgressaoDiv.innerHTML = html;
-
-  ultimoResultadoProgressaoHTML = html;
-  aplicarEventosCliqueProgressao();
 }
 
 // ====================================
-// ABA 3: ATLETAS FIEIS (com anos jogados e ativos em 2025)
+// ABA FIEIS
 // ====================================
 function carregarAtletasFieis() {
   if (atletasFieis.length > 0) {
@@ -620,6 +580,14 @@ function configurarComboboxFieis() {
   inputFieisAtleta.addEventListener("input", () => filtrarListaFieis(inputFieisAtleta.value.trim()));
   inputFieisAtleta.addEventListener("blur", () => setTimeout(() => listaFieisAtleta.classList.remove("show"), 200));
 
+  btnLimparFieis.addEventListener("click", () => {
+    inputFieisAtleta.value = "";
+    labelFieisAtletaSel.textContent = "";
+    atletaFieisSelecionado = "";
+    listaFieisAtleta.classList.remove("show");
+    renderizarListaFieis();
+  });
+
   function exibirListaFieis(lista) {
     listaFieisAtleta.innerHTML = "";
     if (lista.length === 0) {
@@ -649,16 +617,6 @@ function configurarComboboxFieis() {
   }
 }
 
-function aplicarEventosCliqueFieis() {
-  document.querySelectorAll(".clickable-fiel").forEach(el => {
-    el.style.cursor = "pointer";
-    el.onclick = () => {
-      const nome = el.dataset.nome;
-      buscarHistoricoAtleta(nome);
-    };
-  });
-}
-
 function renderizarListaFieis() {
   let listaParaMostrar = atletasFieis;
 
@@ -675,15 +633,13 @@ function renderizarListaFieis() {
   listaParaMostrar.forEach(f => {
     const anosTexto = f.anosJogados === 1 ? "1 ano" : `${f.anosJogados} anos`;
     html += `<div class="progressao-item">
-      <div class="clickable-fiel" data-nome="${f.nome}">
+      <div style="cursor:pointer;" onclick="buscarHistoricoAtleta('${f.nome.replace(/'/g, "\\'")}', listaAtletasDiv)">
         <strong>${f.nome}</strong> <small>— Sempre no ${f.equipe} (${anosTexto})</small>
       </div>
     </div>`;
   });
 
   listaFieisDiv.innerHTML = html;
-  ultimoResultadoFieisHTML = html;
-  aplicarEventosCliqueFieis();
 }
 
 // ====================================
